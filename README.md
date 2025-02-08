@@ -39,6 +39,8 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
 
 <p align="center">
   <img src="https://github.com/awiones/Titan-O-/blob/main/images/bukti.PNG" alt="Titan 'O' Screenshot" width="1000">
+  <img src="https://github.com/awiones/Titan-O-/blob/main/images/login.PNG" alt="Titan 'O' Screenshot" width="1000">
+  <img src="https://github.com/awiones/Titan-O-/blob/main/images/settings.PNG" alt="Titan 'O' Screenshot" width="1000">
 </p>
 
 ## 🚀 Quick Start
