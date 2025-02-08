@@ -16,7 +16,7 @@ Titan 'O' is a web-based platform that allows you to run Ollama AI models offlin
 ## Preview
 
 <p align="center">
-  <img src="assets/img/screenshot.png" alt="Titan 'O' Screenshot" width="600">
+  <img src="https://github.com/awiones/Titan-O-/blob/main/images/bukti.PNG" alt="Titan 'O' Screenshot" width="600">
 </p>
 
 
