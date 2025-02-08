@@ -40,7 +40,7 @@ Titan 'O' is a web-based platform that allows you to run Ollama AI models offlin
 
 3. Navigate to the [chat](http://_vscodecontentref_/4) directory and configure your database connection in `config.php`:
     ```php
-    // filepath: /d:/website/titano/chat/config/config.php
+    // filepath: ../chat/config/config.php
     <?php
     $host = 'localhost';
     $db = 'your_database_name';
