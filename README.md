@@ -68,10 +68,6 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
            'user' => 'your_database_user',
            'pass' => 'your_database_password',
            'charset' => 'utf8mb4'
-       ],
-       'ollama' => [
-           'host' => 'http://localhost:11434',
-           'timeout' => 30
        ]
    ];
    ```
