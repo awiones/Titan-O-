@@ -1,6 +1,11 @@
 MIT License
 
-Copyright (c) 2025 awiones
+Copyright (c) 2025 Awiones (awiones@gmail.com)
+Copyright (c) 2025 Titan 'O' - Offline AI Chat Platform (https://github.com/awiones/Titan-O-)
+
+This software, Titan 'O', is an offline-capable web-based platform that enables users
+to run Ollama AI models locally. Created by Awiones, this platform is designed to
+provide AI capabilities without requiring constant internet connectivity.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
