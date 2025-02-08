@@ -25,11 +25,7 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
   - Easy model switching and configuration
   - Custom model parameter tuning
   - Model performance monitoring
-- **Robust Security**: Local processing ensures data privacy and security
-- **Customizable Experience**:
-  - Dark/Light theme support
-  - Multiple language interfaces
-  - Configurable notification system
+- **Robust Security**: Local processing ensures data privacy.
 - **Performance Analytics Dashboard**:
   - Response time metrics
   - Token usage tracking
