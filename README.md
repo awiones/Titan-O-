@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/img/images.PNG" alt="Titan 'O' Logo" width="300">
+  <img src="https://github.com/awiones/Titan-O-/blob/main/images/logos.jpg" alt="Titan 'O' Logo" width="300">
 </p>
 
 <p align="center">
