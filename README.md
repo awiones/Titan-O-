@@ -7,7 +7,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/awiones/Titan-O-)](https://github.com/awiones/Titan-O-/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/awiones/Titan-O-)](https://github.com/awiones/Titan-O-/network)
 [![GitHub issues](https://img.shields.io/github/issues/awiones/Titan-O-)](https://github.com/awiones/Titan-O-/issues)
-[![GitHub license](https://img.shields.io/github/license/awiones/Titan-O-)](https://github.com/awiones/Titan-O-/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/awiones/Titan-O-/blob/main/LICENSE)
 [![Made with Love](https://img.shields.io/badge/Made%20with-Love-ff69b4.svg)](https://github.com/awiones/Titan-O-)
 [![Ollama Compatible](https://img.shields.io/badge/Ollama-Compatible-success.svg)](https://ollama.ai)
 
