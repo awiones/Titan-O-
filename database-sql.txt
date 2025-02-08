@@ -1,0 +1,35 @@
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50) DEFAULT NULL,
+    last_name VARCHAR(50) DEFAULT NULL,
+    profile_image VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NULL DEFAULT NULL,
+    is_verified BOOLEAN DEFAULT FALSE,
+    role ENUM('user', 'premium', 'admin') DEFAULT 'user',
+
+    -- User preferences
+    theme VARCHAR(10) DEFAULT 'light',
+    font_size VARCHAR(10) DEFAULT 'medium',
+    notifications BOOLEAN DEFAULT TRUE,
+    language VARCHAR(10) DEFAULT 'en',
+    message_spacing VARCHAR(20) DEFAULT 'comfortable',
+
+    -- AI model configuration
+    default_model VARCHAR(50) DEFAULT 'llama2',
+    ai_temperature TINYINT UNSIGNED DEFAULT 70,
+    context_length SMALLINT UNSIGNED DEFAULT 2048,
+
+    -- Advanced AI tuning
+    response_style VARCHAR(20) DEFAULT 'balanced',
+    top_p TINYINT UNSIGNED DEFAULT 90,
+    presence_penalty TINYINT UNSIGNED DEFAULT 10,
+    frequency_penalty TINYINT UNSIGNED DEFAULT 10
+);
+
+-- Indexes for faster login queries
+CREATE INDEX idx_username ON users (username);
+CREATE INDEX idx_email ON users (email);
