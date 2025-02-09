@@ -66,24 +66,14 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
    ```
 
 2. **Configure Database**
-   ```php
-   // File: chat/config/config.php
-   <?php
-   $config = [
-       'db' => [
-           'host' => 'localhost',
-           'name' => 'your_database_name',
-           'user' => 'your_database_user',
-           'pass' => 'your_database_password',
-           'charset' => 'utf8mb4'
-       ]
-   ];
-   ```
+  Update the database connection settings within your project's configuration file.  The specific file name and location will depend on the project's framework.  Ensure the connection details (host, username,   password, database name) match your database setup.
 
 3. **Import Database Schema**
-   ```bash
-   mysql -u your_database_user -p your_database_name < mysql.txt
-   ```
+  Execute the SQL script located in database-sql.txt against your database.  You can typically do this using a database client (like phpMyAdmin, MySQL Workbench, etc.) or via the command line:
+
+  ```
+  mysql -u <your_username> -p <your_database_name> < database-sql.txt
+  ```
 
 4. **Configure Web Server**
    - Point your web server to the project directory
