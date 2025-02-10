@@ -71,13 +71,17 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
    cd Titan-O-
    ```
 
-2. **Configure Database**
+   or
+
+   Download the rar files on [Here](https://github.com/awiones/Titan-O-/releases)
+
+3. **Configure Database**
   Update the database connection settings within your project's configuration file.  The specific file name and location will depend on the project's framework.  Ensure the connection details (host, username,   password, database name) match your database setup.
 
-3. **Import Database Schema**
+4. **Import Database Schema**
   Execute the SQL script located in database-sql.txt against your database.  You can typically do this using a database client (like phpMyAdmin, MySQL Workbench, etc.) or via the command line:
 
-  ```
+  ```bash
   mysql -u <your_username> -p <your_database_name> < database-sql.txt
   ```
 
