@@ -36,15 +36,21 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
 <table align="center">
   <tr>
     <td align="center">
-      <img src="https://github.com/awiones/Titan-O-/blob/main/images/bukti.PNG" alt="Chat Interface" width="480">
+      <img src="https://github.com/awiones/Titan-O-/blob/main/images/buktie2.PNG" alt="Chat Interface" width="480">
     </td>
     <td align="center">
       <img src="https://github.com/awiones/Titan-O-/blob/main/images/login.PNG" alt="Login Page" width="480">
     </td>
   </tr>
+</table>
+
+<table align="center">
   <tr>
-    <td colspan="2" align="center">
+    <td align="center">
       <img src="https://github.com/awiones/Titan-O-/blob/main/images/settings.PNG" alt="Settings Page" width="700">
+    </td>
+    <td align="center">
+      <img src="https://github.com/awiones/Titan-O-/blob/main/images/bukti.PNG" alt="Chat Page" width="700">
     </td>
   </tr>
 </table>
