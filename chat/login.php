@@ -1,11 +1,34 @@
 <?php
 session_start();
 require_once 'config/config.php';
+require_once 'config/google_config.php';
+require_once 'vendor/autoload.php';
 
 // CSRF Token Generation
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
+
+// Add debugging for OAuth flow
+if (isset($_GET['code'])) {
+    // If we get a code here, we're in the wrong place - redirect to callback
+    header('Location: google-callback.php?code=' . urlencode($_GET['code']));
+    exit();
+}
+
+// Initialize Google Client
+$google_client = new Google_Client();
+$google_client->setClientId(GOOGLE_CLIENT_ID);
+$google_client->setClientSecret(GOOGLE_CLIENT_SECRET);
+$google_client->setRedirectUri(GOOGLE_REDIRECT_URI);
+$google_client->addScope("email");
+$google_client->addScope("profile");
+
+// Store the intended redirect in session
+$_SESSION['oauth_redirect'] = 'titano.php';
+
+// Generate Google OAuth URL
+$google_login_url = $google_client->createAuthUrl();
 
 // Initialize error message
 $error = '';
@@ -256,10 +279,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             justify-content: center;
             color: var(--text-color);
             transition: all 0.3s ease;
+            text-decoration: none;
         }
 
         .social-btn:hover {
             background-color: var(--text-color);
+        }
+
+        .social-btn i {
+            font-size: 20px;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover i {
             color: var(--background-color);
         }
 
@@ -312,14 +345,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
 
         <div class="social-login">
-            <a href="#" class="social-btn" title="Login with Google">
+            <a href="<?php echo $google_login_url; ?>" class="social-btn" title="Login with Google">
                 <i class="fab fa-google"></i>
-            </a>
-            <a href="#" class="social-btn" title="Login with GitHub">
-                <i class="fab fa-github"></i>
-            </a>
-            <a href="#" class="social-btn" title="Login with Microsoft">
-                <i class="fab fa-microsoft"></i>
             </a>
         </div>
     </div>

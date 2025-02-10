@@ -1,6 +1,12 @@
 <?php
 session_start();
 require_once 'config/config.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -11,932 +17,58 @@ require_once 'config/config.php';
     <title>Titano AI Chat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --background-color: #ffffff;
-            --text-color: #000000;
-            --input-border: #000000;
-            --input-background: #ffffff;
-            --button-background: #000000;
-            --button-text: #ffffff;
-            --hover-background: #333333;
-        }
-
-        body {
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-
-        .chat-container {
-            height: 100vh;
-            display: flex;
-        }
-
-        .sidebar {
-            width: 250px;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s ease, min-width 0.3s ease;
-        }
-
-        .titan-title {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
-        }
-
-        .settings-btn {
-            margin-top: auto;
-            background-color: var(--button-background);
-            color: var(--button-text);
-            border: 2px solid var(--text-color);
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 4px 4px 0 var(--text-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .settings-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .sidebar.minimized .titan-title,
-        .sidebar.minimized .settings-btn span {
-            display: none;
-        }
-
-        .sidebar.minimized {
-            width: 70px;
-            min-width: 70px;
-            overflow: hidden;
-        }
-
-        .sidebar.minimized .user-profile,
-        .sidebar.minimized .new-chat-btn,
-        .sidebar.minimized .chat-history {
-            display: none;
-        }
-
-        .sidebar.minimized .sidebar-toggle {
-            width: 100%;
-            text-align: center;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            background-color: var(--background-color);
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s ease, margin-left 0.3s ease;
-        }
-
-        .main-content.expanded {
-            width: calc(100% - 70px);
-            margin-left: 70px;
-        }
-
-        .sidebar-toggle {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            cursor: pointer;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-toggle i {
-            font-size: 1.2rem;
-        }
-
-        .sidebar.minimized .sidebar-toggle-text {
-            display: none;
-        }
-
-        .user-profile {
-            background-color: var(--input-background);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .username {
-            font-weight: 600;
-        }
-
-        .user-tier {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        .upgrade-btn {
-            width: 100%;
-            margin-top: 10px;
-            background-color: transparent;
-            border-color: var(--button-background);
-            color: var(--button-background);
-        }
-
-        .upgrade-btn:hover {
-            background-color: var(--button-background);
-            color: var (--button-text);
-        }
-
-        .new-chat-btn {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            border: 1px solid var(--input-border);
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .new-chat-btn:hover {
-            background-color: var(--hover-background);
-        }
-
-        .chat-history {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .chat-history-item {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-history-item:hover {
-            background-color: var(--hover-background);
-        }
-
-        .chat-history-item.active {
-            background-color: var(--hover-background);
-            border-left: 3px solid var(--button-background);
-        }
-
-        .chat-messages {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .message {
-            max-width: 800px;
-            margin: 12px 0;
-            width: fit-content; 
-            padding: 14px 18px;
-            border-radius: 8px;
-            line-height: 1.6;
-            font-size: 0.95rem;
-            color: var(--text-color);
-            display: flex;
-            gap: 12px;
-            align-items: start;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .user-message {
-            background-color: var(--input-background);
-            margin-left: auto;
-            border: 1px solid var(--input-border);
-        }
-
-        .ai-message {
-            background-color: var(--hover-background);
-            margin-right: auto;
-            border: 1px solid var(--input-border);
-        }
-
-        .message-icon {
-            font-size: 1.2rem;
-            margin-top: 2px;
-            color: #9b9b9b;
-        }
-
-        .message-text {
-            flex-grow: 1;
-        }
-
-        .input-container {
-            padding: 20px;
-            background-color: var(--background-color);
-            position: relative;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .input-group {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background-color: var(--input-background);
-            border-radius: 10px;
-            border: 1px solid var(--input-border);
-        }
-
-        .message-input {
-            width: 100%;
-            padding: 12px 50px 12px 15px !important;
-            border: none !important;
-            background-color: transparent !important;
-            color: var(--text-color) !important;
-            resize: none;
-            max-height: 200px;
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-
-        .message-input:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        .send-button {
-            position: absolute;
-            right: 10px;
-            bottom: 50%;
-            transform: translateY(50%);
-            background: none;
-            border: none;
-            color: var(--text-color);
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: color 0.3s ease, transform 0.1s ease;
-        }
-
-        .send-button:active:not(:disabled) {
-            transform: translateY(50%) scale(0.95);
-        }
-
-        .message-input:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .chat-container {
-            background-color: var(--background-color);
-            border: 2px solid var(--text-color);
-            border-radius: 10px;
-            width: 100%;
-            height: 95vh;
-            margin: 20px;
-            box-shadow: 8px 8px 0 var(--text-color);
-            display: flex;
-        }
-
-        .sidebar {
-            border-right: 2px solid var(--text-color);
-            background-color: var(--background-color);
-        }
-
-        .new-chat-btn {
-            border: 2px solid var(--text-color);
-            background-color: var(--button-background);
-            color: var(--button-text);
-            transition: all 0.3s ease;
-            box-shadow: 4px 4px 0 var(--text-color);
-        }
-
-        .new-chat-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .chat-history-item {
-            border: 1px solid var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .chat-history-item:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0 var(--text-color);
-        }
-
-        .chat-history-item.active {
-            background-color: var(--button-background);
-            color: var(--button-text);
-            box-shadow: 4px 4px 0 var(--text-color);
-        }
-
-        .message {
-            background-color: var(--background-color);
-            border: 2px solid var(--text-color);
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .message:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .input-container {
-            border-top: 2px solid var(--text-color);
-            background-color: var(--background-color);
-            padding: 20px;
-        }
-
-        .input-group {
-            border: 2px solid var(--text-color);
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .input-group:focus-within {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .message-input {
-            border: none !important;
-            background-color: var(--background-color) !important;
-            color: var(--text-color) !important;
-        }
-
-        .send-button {
-            color: var(--text-color);
-            transition: transform 0.3s ease;
-        }
-
-        .send-button:hover:not(:disabled) {
-            transform: translateY(50%) scale(1.1);
-        }
-
-        .sidebar-toggle {
-            border: 2px solid var(--text-color);
-            background-color: var(--button-background);
-            color: var(--button-text);
-            margin: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            box-shadow: 4px 4px 0 var(--text-color);
-        }
-
-        .sidebar-toggle:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        body {
-            background-color: var(--background-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Update message colors */
-        .user-message, .ai-message {
-            background-color: var(--background-color);
-            color: var(--text-color);
-        }
-
-        .message-icon {
-            color: var(--text-color);
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: var(--text-color);
-            border-radius: 50%;
-            animation: bounce 1.5s infinite ease-in-out;
-        }
-
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes bounce {
-            0%, 60%, 100% {
-                transform: translateY(0);
-            }
-            30% {
-                transform: translateY(-4px);
-            }
-        }
-
-        .message.error {
-            background-color: #fff2f2;
-            border-color: #ff4444;
-        }
-
-        .model-selector-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 2px solid var(--text-color);
-        }
-
-        .model-selector {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            display: block;
-            padding: 10px;
-            border: 2px solid var(--text-color);
-            border-radius: 5px;
-            background-color: var(--background-color);
-            color: var (--text-color);
-            cursor: pointer;
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .model-selector:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .model-selector:focus {
-            outline: none;
-        }
-
-        .add-model-btn {
-            padding: 10px;
-            border: 2px solid var(--text-color);
-            border-radius: 5px;
-            background-color: var(--button-background);
-            color: var(--button-text);
-            cursor: pointer;
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .add-model-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .modal-content {
-            border: 2px solid var(--text-color);
-            box-shadow: 8px 8px 0 var(--text-color);
-        }
-
-        .modal-header, .modal-footer {
-            border-color: var(--text-color);
-        }
-
-        .modal .btn {
-            border: 2px solid var(--text-color);
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .modal .btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var(--text-color);
-        }
-
-        .chat-history-item {
-            position: relative;
-        }
-
-        .delete-chat {
-            position: absolute;
-            right: 10px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .chat-history-item:hover .delete-chat {
-            opacity: 1;
-        }
-
-        .message-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-            transition: opacity 0.2s ease;
-        }
-
-        .message:hover .message-actions {
-            opacity: 1;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            padding: 4px;
-            cursor: pointer;
-            color: var(--text-color);
-            opacity: 0.6;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .action-btn i {
-            font-size: 14px;
-        }
-
-        .message.editing .message-text {
-            position: relative;
-        }
-
-        .message.editing textarea {
-            width: 850px !important;  /* Force the width */
-            min-height: 150px;
-            padding: 16px;
-            border: 2px solid var(--text-color);
-            border-radius: 8px;
-            background: var(--background-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-            margin: 15px 0;
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-            display: block;  /* Add this */
-            box-sizing: border-box;  /* Add this */
-        }
-
-        .edit-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .message {
-            flex-direction: column;
-        }
-
-        .message-content {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        .regenerate-btn {
-            color: black;
-        }
-
-        .remove-btn {
-            color: black;
-        }
-
-        .edit-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .message.editing textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 8px;
-            border: 2px solid var(--text-color);
-            border-radius: 4px;
-            background: var(--background-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: inherit;
-            line-height: inherit;
-            resize: vertical;
-            margin-bottom: 8px;
-            box-shadow: 4px 4px 0 var(--text-color);
-        }
-
-        .save-edit, .cancel-edit {
-            color: var(--text-color);
-        }
-
-        .save-edit:hover, .cancel-edit:hover {
-            transform: scale(1.1);
-        }
-
-        .message.editing .message-text {
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .message.editing {
-            width: 100%;
-            max-width: 800px;
-        }
-
-        /* Update message editing styles */
-        .message.editing {
-            width: 850px;  /* Fixed width instead of 100% */
-            max-width: 90%; /* Fallback for smaller screens */
-            transition: all 0.3s ease;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .message.editing textarea {
-            width: 850px;  /* Fixed width */
-            min-height: 150px;
-            padding: 16px;
-            border: 2px solid var (--text-color);
-            border-radius: 8px;
-            background: var(--background-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-            margin: 15px 0;
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-            max-width: 100%; /* Prevent overflow on small screens */
-        }
-
-        .message.editing {
-            width: 100%;
-            max-width: 1000px;  /* Increased from 800px */
-            transition: all 0.3s ease;
-        }
-
-        .message.editing .message-text {
-            width: 100%;
-        }
-
-        .message.editing textarea {
-            width: 100%;
-            min-height: 150px;  /* Increased from 120px */
-            padding: 16px;      /* Increased from 12px */
-            border: 2px solid var(--text-color);
-            border-radius: 8px;  /* Increased from 4px */
-            background: var(--background-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 1rem;    /* Explicit font size */
-            line-height: 1.6;   /* Improved line height */
-            resize: vertical;
-            margin: 15px 0;     /* Increased from 10px */
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .message.editing textarea:focus {
-            outline: none;
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0 var (--text-color);
-        }
-
-        .edit-actions {
-            display: flex;
-            gap: 12px;         /* Increased from 8px */
-            margin-top: 12px;  /* Increased from 8px */
-            padding: 0 4px;
-        }
-
-        .edit-actions .action-btn {
-            padding: 8px 12px;  /* Added padding */
-            border: 2px solid var(--text-color);
-            border-radius: 4px;
-            background: var(--background-color);
-            box-shadow: 3px 3px 0 var(--text-color);
-            opacity: 1;
-        }
-
-        .edit-actions .action-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0 var(--text-color);
-        }
-
-        .edit-actions .save-edit {
-            color: #008000;  /* Green color for save */
-        }
-
-        .edit-actions .cancel-edit {
-            color: #ff0000;  /* Red color for cancel */
-        }
-
-        .message.editing {
-            padding: 20px;    /* Increased padding */
-            margin: 20px 0;   /* Added margin */
-        }
-
-        /* Update editing styles to maintain message alignment */
-        .message.editing {
-            width: 900px;
-            max-width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        .user-message.editing {
-            margin-left: auto;
-            margin-right: 0;
-        }
-
-        .ai-message.editing {
-            margin-left: 0;
-            margin-right: auto;
-        }
-
-        .message.editing textarea {
-            width: 850px !important;
-            min-height: 150px;
-            padding: 16px;
-            border: 2px solid var(--text-color);
-            border-radius: 8px;
-            background: var(--background-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-            margin: 15px 0;
-            box-shadow: 4px 4px 0 var(--text-color);
-            transition: all 0.3s ease;
-            display: block;
-            box-sizing: border-box;
-        }
-
-        .user-message.editing .edit-actions {
-            justify-content: flex-end;
-        }
-
-        .message-text code {
-            background-color: #f0f0f0;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9em;
-        }
-
-        .message-text pre {
-            background-color: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 10px 0;
-        }
-
-        .message-text pre code {
-            background-color: transparent;
-            padding: 0;
-        }
-
-        .message-text blockquote {
-            border-left: 4px solid var(--text-color);
-            margin: 10px 0;
-            padding: 10px 20px;
-            background-color: rgba(0,0,0,0.05);
-        }
-
-        .message-text h1,
-        .message-text h2,
-        .message-text h3 {
-            margin: 15px 0 10px 0;
-            line-height: 1.2;
-        }
-
-        .message-text ul,
-        .message-text ol {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        .message-text li {
-            margin: 5px 0;
-        }
-
-        .message.incomplete {
-            opacity: 0.8;
-            border-style: dashed;
-        }
-
-        .message.incomplete .regenerate-btn {
-            animation: pulse 2s infinite;
-            opacity: 1 !important;
-            color: #ff6b00;
-        }
-
-        .message.incomplete .message-actions {
-            opacity: 1 !important;
-        }
-
-        .message.incomplete {
-            opacity: 0.7;
-            border-style: dashed;
-        }
-
-        .message.incomplete .regenerate-btn {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .progress {
-            height: 20px;
-            border: 2px solid var(--text-color);
-            border-radius: 5px;
-            background-color: var(--background-color);
-            box-shadow: 4px 4px 0 var(--text-color);
-        }
-
-        .progress-bar {
-            background-color: var(--button-background);
-            transition: width 0.3s ease;
-        }
-    </style>
-    <script src="js/chat_manager.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/chat_manager.js"></script>
+    <script src="assets/js/theme.js"></script>
+    <script src="assets/js/font.js"></script>
+    <script src="assets/js/lang.js"></script>
 </head>
 <body>
     <div class="chat-container">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
-            <!-- Title -->
-            <div class="titan-title">Titan 'O'</div>
-            
-            <!-- Sidebar Toggle Button -->
-            <button class="sidebar-toggle" id="sidebar-toggle">
-                <i class="fas fa-chevron-left"></i>
-                <span class="sidebar-toggle-text">Minimize</span>
-            </button>
+            <!-- Title and Toggle Button -->
+            <div class="titan-header">
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="titan-title">Titan 'O'</div>
+            </div>
             
             <!-- New Chat Button -->
             <button class="new-chat-btn" id="new-chat-btn">
-                <i class="fas fa-plus"></i> New Chat
+                <i class="fas fa-plus"></i> <span>New Chat</span>
             </button>
 
             <!-- Chat History -->
             <div class="chat-history" id="chat-history">
-                <!-- Chat history will be populated by JavaScript -->
+                <div id="chat-history-content"></div>
             </div>
             
-            <!-- Settings Button -->
-            <a href="settings.php" class="settings-btn">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
+            <!-- Bottom Actions Container -->
+            <div class="sidebar-bottom-actions">
+                <button class="settings-btn theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="settings.php" class="settings-btn">
+                    <i class="fas fa-cog"></i>
+                    <span data-i18n="settings">Settings</span>
+                </a>
+            </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content" id="main-content">
             <!-- Add Model Selector -->
             <div class="model-selector-container">
-                <select id="model-selector" class="model-selector">
-                    <option value="">Loading models...</option>
-                </select>
+                <div class="select-group">
+                    <select id="model-selector" class="model-selector">
+                        <option value="">Loading models...</option>
+                    </select>
+                    <button id="refresh-models" class="refresh-models-btn" title="Refresh models list">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
                 <button id="add-model-btn" class="add-model-btn">
                     <i class="fas fa-plus"></i> Add Model
                 </button>
@@ -952,34 +84,49 @@ require_once 'config/config.php';
                         </div>
                         <div class="modal-body">
                             <form id="addModelForm">
-                                <div class="mb-3">
-                                    <label for="modelName" class="form-label">Model Name (e.g., llama2:latest, deepseek-coder:6.7b)</label>
-                                    <input type="text" class="form-control" id="modelName" required 
-                                           placeholder="Enter model name (e.g., llama2:latest)">
+                                <div class="model-input-group">
+                                    <label for="modelName">Model Name</label>
+                                    <div class="input-container">
+                                        <input type="text" id="modelName" class="form-control" placeholder="Enter model name (e.g., llama2 or TheBloke/Llama-2-7B)">
+                                        <button type="button" class="check-btn" id="checkModel">
+                                            <i class="fas fa-search"></i> Check
+                                        </button>
+                                    </div>
                                 </div>
-                                <div id="downloadProgress" class="mt-3 d-none">
-                                    <label class="form-label">Download Progress:</label>
-                                    <div class="progress">
+                                <div id="modelStatus" style="display: none;"></div>
+                                <div id="downloadProgress" class="mt-3" style="display: none;">
+                                    <div class="progress mb-2">
                                         <div class="progress-bar" role="progressbar" style="width: 0%"></div>
                                     </div>
-                                    <small class="text-muted" id="progressText"></small>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span id="progressText">Starting download...</span>
+                                        <button type="button" class="btn btn-danger btn-sm" id="cancelDownload" style="display: none;">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="saveModel">Pull Model</button>
+                            <button type="button" class="btn btn-primary" id="saveModel" disabled>Pull Model</button>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="chat-messages" id="chat-messages">
-                <div class="message ai-message">
-                    <i class="message-icon fas fa-robot"></i>
-                    <div class="message-text">
-                        <strong>Hello! 👋</strong> I'm Titan 'O'. an website for local ai run, chat below here
-                    </div>
+                <div class="welcome-message" style="
+                    display: flex;
+                    height: 100%;
+                    justify-content: center;
+                    align-items: center;
+                    text-align: center;
+                    color: var(--text-color);
+                    font-size: 1.5rem;
+                    opacity: 0.8;
+                ">
+                    Chat with your local ai now, <span id="username-display"></span>!
                 </div>
             </div>
 
@@ -989,10 +136,13 @@ require_once 'config/config.php';
                     <div class="input-group">
                         <textarea 
                             class="form-control message-input" 
-                            placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)" 
+                            placeholder="Type your message here..."
                             rows="1" 
                             id="message-input"
                         ></textarea>
+                        <button type="button" class="stop-button" id="stop-button" style="display: none;">
+                            <i class="fas fa-stop"></i>
+                        </button>
                         <button type="submit" class="send-button" disabled>
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -1002,7 +152,73 @@ require_once 'config/config.php';
         </div>
     </div>
 
+    <!-- Delete Chat Confirmation Modal -->
+    <div class="modal fade" id="deleteChatModal" tabindex="-1" aria-labelledby="deleteChatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteChatModalLabel">Delete Chat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    this action will have consequences...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteChat">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const themeManager = new ThemeManager();
+        const fontManager = new FontManager();
+        const langManager = new LanguageManager();
+
+        // Load user settings
+        async function loadUserSettings() {
+            try {
+                const response = await fetch('api/get_settings.php');
+                const settings = await response.json();
+                
+                if (settings.font_size) {
+                    fontManager.setFontSize(settings.font_size);
+                }
+                if (settings.theme) {
+                    themeManager.setTheme(settings.theme);
+                }
+                if (settings.language) {
+                    await langManager.setLanguage(settings.language);
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // Call this when the page loads
+        document.addEventListener('DOMContentLoaded', loadUserSettings);
+
+        // Update the selector in the click event listener
+        document.querySelector('.theme-toggle').addEventListener('click', function() {
+            const currentTheme = themeManager.getCurrentTheme();
+            if (currentTheme === 'system') {
+                themeManager.setTheme(themeManager.isDarkMode() ? 'light' : 'dark');
+            } else {
+                themeManager.setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            }
+            updateThemeIcon();
+        });
+
+        function updateThemeIcon() {
+            const icon = document.querySelector('.theme-toggle i');
+            icon.className = themeManager.isDarkMode() ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Update theme icon on theme changes
+        window.addEventListener('themechange', updateThemeIcon);
+        updateThemeIcon();
+
         let currentModel = 'llama2';
         const modelSelector = document.getElementById('model-selector');
 
@@ -1054,10 +270,32 @@ require_once 'config/config.php';
             }
         }
 
-        // Update model selection
+        // Replace the model selection event listener
         modelSelector.addEventListener('change', function() {
+            const oldModel = currentModel;
             currentModel = this.value;
-            addMessage(`Switched to ${currentModel} model`, 'ai-message');
+            
+            // Create and show notification
+            const notification = document.createElement('div');
+            notification.className = 'model-switch-notification';
+            notification.innerHTML = `
+                <i class="fas fa-exchange-alt"></i>
+                <div class="notification-content">
+                    <div class="notification-title">Model Switched</div>
+                    <div class="notification-text">Changed from ${oldModel} to ${currentModel}</div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Remove notification after animation
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         });
 
         const messageInput = document.getElementById('message-input');
@@ -1072,14 +310,30 @@ require_once 'config/config.php';
         // Initialize chat manager
         const chatManager = new ChatManager();
 
-        // Add this after the variable declarations
-        const INCOMPLETE_RESPONSE = '⌛ Response interrupted. Click regenerate to try again.';
+        // Add isGenerating flag to track AI response status
+        let isGenerating = false;
 
-        // Update the send message function
-        async function sendMessage(message = null, isRegenerate = false) {
+        // Update sendMessage function to remove incomplete response handling
+        async function sendMessage(message = null, isRegenerate = false, resume = false) {
             const messageToSend = message || messageInput.value.trim();
             
             if (messageToSend) {
+                // Set generating flag to true
+                isGenerating = true;
+
+                // Show stop button and hide send button
+                document.querySelector('.send-button').style.display = 'none';
+                const stopButton = document.querySelector('.stop-button');
+                stopButton.style.display = 'flex';
+                setTimeout(() => stopButton.classList.add('visible'), 10);
+
+                // Clear welcome message if it exists
+                const chatMessages = document.getElementById('chat-messages');
+                const welcomeMessage = chatMessages.querySelector('div[style*="display: flex"]');
+                if (welcomeMessage && welcomeMessage.textContent.includes('Chat with your local ai now')) {
+                    chatMessages.innerHTML = '';
+                }
+
                 // Abort any ongoing request
                 if (currentAbortController) {
                     currentAbortController.abort();
@@ -1096,27 +350,68 @@ require_once 'config/config.php';
                     chatManager.addMessage(chatManager.currentChatId, messageToSend, false);
                     messageInput.value = '';
                 }
-                
+
+                // Show loading state
                 messageInput.disabled = true;
                 sendButton.disabled = true;
+
+                // If regenerating, remove all messages after the regenerated one
+                if (isRegenerate) {
+                    const messages = chatMessages.querySelectorAll('.message-container');
+                    let found = false;
+                    messages.forEach(msg => {
+                        if (found) {
+                            msg.remove();
+                        }
+                        if (msg.querySelector('.message-text')?.textContent.trim() === messageToSend) {
+                            found = true;
+                        }
+                    });
+                }
                 
                 // Create new AbortController for this request
                 currentAbortController = new AbortController();
                 
-                // Add typing indicator
-                const typingDiv = document.createElement('div');
-                typingDiv.className = 'message ai-message typing';
-                typingDiv.innerHTML = `
+                // Create AI message container for streaming
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message-container ai-message-container';
+
+                // Add icon and model name
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'message-icon fas fa-robot';
+                aiMessageDiv.appendChild(iconDiv);
+
+                const modelNameDiv = document.createElement('div');
+                modelNameDiv.className = 'model-name';
+                modelNameDiv.textContent = currentModel;
+                aiMessageDiv.appendChild(modelNameDiv);
+
+                // Add message content
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai-message';
+                messageDiv.innerHTML = `
                     <div class="message-content">
-                        <i class="message-icon fas fa-robot"></i>
-                        <div class="message-text">
-                            <div class="typing-indicator">
-                                <span></span><span></span><span></span>
-                            </div>
-                        </div>
+                        <div class="message-text"></div>
                     </div>
                 `;
-                document.getElementById('chat-messages').appendChild(typingDiv);
+                aiMessageDiv.appendChild(messageDiv);
+
+                // Add actions div
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                actionsDiv.style.opacity = '0';
+                actionsDiv.innerHTML = `
+                    <i class="fas fa-copy action-btn copy-btn" title="Copy"></i>
+                    <i class="fas fa-sync action-btn regenerate-btn" title="Regenerate"></i>
+                `;
+                aiMessageDiv.appendChild(actionsDiv);
+
+                chatMessages.appendChild(aiMessageDiv);
+                setupMessageActions(aiMessageDiv); // Add this line
+                const messageText = aiMessageDiv.querySelector('.message-text');
+                let fullResponse = '';
+                
+                const messageId = chatManager.uniqid();
                 
                 try {
                     const response = await fetch('api/ollama_handler.php', {
@@ -1126,312 +421,521 @@ require_once 'config/config.php';
                         },
                         body: JSON.stringify({ 
                             message: messageToSend,
-                            model: currentModel
+                            model: currentModel,
+                            chat_id: chatManager.currentChatId,
+                            message_id: messageId,
+                            resume: resume,
+                            stream: true
                         }),
                         signal: currentAbortController.signal
                     });
 
-                    const data = await response.json();
-                    typingDiv.remove();
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
 
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-
-                    if (data.response) {
-                        addMessage(data.response, 'ai-message');
-                        if (!isRegenerate) {
-                            // Save message and update URL/history on first AI response
-                            chatManager.addMessage(
-                                chatManager.currentChatId || chatManager.pendingChat.id, 
-                                data.response, 
-                                true
-                            );
-                            
-                            // No need to call updateChatHistory() here as it's handled in ChatManager
+                    while (true) {
+                        const {value, done} = await reader.read();
+                        if (done) break;
+                        
+                        const chunk = decoder.decode(value);
+                        try {
+                            const lines = chunk.split('\n');
+                            for (const line of lines) {
+                                if (line.trim() && line.startsWith('data: ')) {
+                                    const data = JSON.parse(line.substring(6));
+                                    if (data.full_response) {
+                                        fullResponse = data.full_response;
+                                        messageText.innerHTML = formatMessage(fullResponse);
+                                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error parsing chunk:', e);
                         }
                     }
+
+                    // Show message actions after completion
+                    aiMessageDiv.querySelector('.message-actions').style.opacity = '1';
+                    
+                    // Save the complete message
+                    if (!isRegenerate) {
+                        chatManager.addMessage(
+                            chatManager.currentChatId || chatManager.pendingChat.id, 
+                            fullResponse, 
+                            true,
+                            false,
+                            messageId
+                        );
+                    } else {
+                        chatManager.addMessage(
+                            chatManager.currentChatId, 
+                            fullResponse, 
+                            true, 
+                            true  // Mark as regenerated
+                        );
+                        
+                        // Show version navigation immediately after regeneration
+                        const aiMessageDiv = chatMessages.querySelector('.ai-message-container:last-child');
+                        if (aiMessageDiv) {
+                            const currentChat = chatManager.getChatHistory(chatManager.currentChatId);
+                            const aiMessages = currentChat.messages.filter(m => m.isAI);
+                            const lastAIMessage = aiMessages[aiMessages.length - 1];
+                            
+                            if (lastAIMessage?.versions?.length > 1) {
+                                const versionNav = document.createElement('div');
+                                versionNav.className = 'version-nav';
+                                versionNav.innerHTML = `
+                                    <button class="version-btn" ${lastAIMessage.currentVersion === 0 ? 'disabled' : ''} 
+                                            onclick="navigateVersion(${lastAIMessage.aiIndex}, -1)">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span class="version-info">${lastAIMessage.currentVersion + 1}/${lastAIMessage.versions.length}</span>
+                                    <button class="version-btn" disabled 
+                                            onclick="navigateVersion(${lastAIMessage.aiIndex}, 1)">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                `;
+                                
+                                const actionsDiv = aiMessageDiv.querySelector('.message-actions');
+                                actionsDiv.insertBefore(versionNav, actionsDiv.firstChild);
+                            }
+                        }
+                    }
+
                 } catch (error) {
                     console.error('Error:', error);
-                    typingDiv.remove();
                     
                     if (error.name === 'AbortError') {
-                        // Get the chat ID before the abort
-                        const lastActiveChatId = chatManager.lastActiveChatId;
-                        
-                        // Add incomplete message to the last active chat
-                        addMessage(INCOMPLETE_RESPONSE, 'ai-message incomplete');
-                        chatManager.addIncompleteMessage(INCOMPLETE_RESPONSE);
-                        
-                        // If we're in a different chat now, switch back to show the error
-                        const currentUrlChatId = getChatIdFromURL();
-                        if (currentUrlChatId !== lastActiveChatId && lastActiveChatId) {
-                            loadChatHistory(lastActiveChatId);
+                        // Keep the partial response instead of removing it
+                        const lastAiMessage = chatMessages.querySelector('.ai-message-container:last-child');
+                        if (lastAiMessage) {
+                            // Save the partial response in chat history
+                            const partialText = lastAiMessage.querySelector('.message-text').innerHTML;
+                            chatManager.addMessage(
+                                chatManager.currentChatId,
+                                partialText,
+                                true,
+                                false,
+                                messageId
+                            );
+                            
+                            // Show the message actions
+                            lastAiMessage.querySelector('.message-actions').style.opacity = '1';
                         }
-                        
-                        updateChatHistory();
                         return;
                     }
                     
-                    addMessage('Sorry, I encountered an error while processing your request: ' + error.message, 'ai-message error');
+                    messageText.innerHTML = 'Sorry, I encountered an error while processing your request: ' + error.message;
+                    aiMessageDiv.classList.add('error');
                 } finally {
                     currentAbortController = null;
                     messageInput.disabled = false;
                     messageInput.focus();
-                    sendButton.disabled = false;
+                    
+                    // Reset generating flag
+                    isGenerating = false;
+
+                    // Hide stop button with fade out
+                    stopButton.classList.remove('visible');
+                    setTimeout(() => {
+                        stopButton.style.display = 'none';
+                    }, 300);
+                    
+                    // Hide stop button and show send button
+                    document.querySelector('.stop-button').style.display = 'none';
+                    document.querySelector('.send-button').style.display = 'flex';
                 }
             }
         }
 
-        // Update addMessage function to handle code blocks and formatting
-        function addMessage(message, className, originalQuestion = '') {
+        // Remove incomplete message handling in addMessage function
+        function addMessage(message, className, originalQuestion = '', isRegenerated = false) {
             const messagesContainer = document.getElementById('chat-messages');
+            
+            // Create container for message and its actions
+            const containerDiv = document.createElement('div');
+            containerDiv.className = `message-container ${className}-container`;
+            
+            // Add icon and model name for AI messages
+            const iconDiv = document.createElement('div');
+            const iconClass = className === 'user-message' ? 'fa-user' : 'fa-robot';
+            iconDiv.className = `message-icon fas ${iconClass}`;
+            containerDiv.appendChild(iconDiv);
+            
+            // Add model name for AI messages
+            if (className === 'ai-message') {
+                const currentChat = chatManager.getChatHistory(chatManager.currentChatId);
+                if (currentChat) {
+                    // Find the matching AI message to retrieve its aiIndex
+                    const matchedMessage = currentChat.messages.find(m => m.isAI && m.content === message);
+                    if (matchedMessage && matchedMessage.aiIndex !== undefined) {
+                        containerDiv.setAttribute('data-ai-index', matchedMessage.aiIndex);
+                    }
+                }
+            }
+            
+            // Create message div
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
-            const iconClass = className === 'user-message' ? 'fa-user' : 'fa-robot';
-            
-            // Check if this is an interrupted response
-            const isIncomplete = message === INCOMPLETE_RESPONSE;
-            if (isIncomplete) {
-                messageDiv.classList.add('incomplete');
-            }
             
             const formattedMessage = formatMessage(message);
             
-            // Update the message actions HTML in addMessage function
+            // Create message content without icon
             messageDiv.innerHTML = `
                 <div class="message-content">
-                    <i class="message-icon fas ${iconClass}"></i>
                     <div class="message-text">${formattedMessage}</div>
-                </div>
-                <div class="message-actions">
-                    ${className === 'ai-message' ? 
-                        isIncomplete ? 
-                            `<button class="action-btn regenerate-btn" title="Regenerate">
-                                <i class="fas fa-sync"></i>
-                            </button>` 
-                        : 
-                            `<button class="action-btn copy-btn" title="Copy">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button class="action-btn edit-btn" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn regenerate-btn" title="Regenerate">
-                                <i class="fas fa-sync"></i>
-                            </button>`
-                    : 
-                        `<button class="action-btn edit-btn" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn remove-btn" title="Remove">
-                            <i class="fas fa-trash"></i>
-                        </button>`
-                    }
                 </div>
             `;
 
-            // Add remove functionality for user messages
-            if (className === 'user-message') {
-                if (!isIncomplete && messageDiv.querySelector('.edit-btn')) {
-                    // Add edit and remove button handlers only for complete messages
-                    messageDiv.querySelector('.remove-btn').addEventListener('click', () => {
-                        if (confirm('This will remove this message and all subsequent messages. Are you sure?')) {
-                            const messageIndex = chatManager.getMessageIndex(chatManager.currentChatId, message);
-                            if (messageIndex !== -1) {
-                                // Remove all messages from DOM starting with this one
-                                let currentElement = messageDiv;
-                                while (currentElement.nextElementSibling) {
-                                    currentElement.nextElementSibling.remove();
-                                }
-                                messageDiv.remove();
+            // Create simplified actions div
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            
+            // Replace the version navigation creation code in the addMessage function
+            if (className === 'ai-message') {
+                const currentChat = chatManager.getChatHistory(chatManager.currentChatId);
+                if (currentChat) {
+                    const currentMessage = currentChat.messages.find(
+                        m => m.isAI && m.content === message
+                    );
+                    
+                    let versionControl = '';
+                    if (currentMessage?.versions?.length > 1) {
+                        versionControl = `
+                            <div class="version-control">
+                                <button class="version-prev" ${currentMessage.currentVersion === 0 ? 'disabled' : ''} 
+                                        title="Previous version">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="version-info">
+                                    <span class="version-count">${currentMessage.currentVersion + 1}/${currentMessage.versions.length}</span>
+                                </span>
+                                <button class="version-next" 
+                                        ${currentMessage.currentVersion === currentMessage.versions.length - 1 ? 'disabled' : ''} 
+                                        title="Next version">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
 
-                                // Remove messages from chat manager
+                    actionsDiv.innerHTML = `
+                        ${versionControl}
+                        <i class="fas fa-copy action-btn copy-btn" title="Copy"></i>
+                        <i class="fas fa-sync action-btn regenerate-btn" title="Regenerate"></i>
+                    `;
+
+                    // Add version control event listeners
+                    if (currentMessage?.versions?.length > 1) {
+                        const container = actionsDiv;
+                        const prevBtn = container.querySelector('.version-prev');
+                        const nextBtn = container.querySelector('.version-next');
+
+                        prevBtn?.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!prevBtn.disabled) {
+                                handleVersionChange(currentMessage.aiIndex, -1, container);
+                            }
+                        });
+
+                        nextBtn?.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!nextBtn.disabled) {
+                                handleVersionChange(currentMessage.aiIndex, 1, container);
+                            }
+                        });
+                    }
+                }
+            } else {
+                actionsDiv.innerHTML = `
+                    <i class="fas fa-edit action-btn edit-btn" title="Edit"></i>
+                    <i class="fas fa-trash action-btn remove-btn" title="Remove"></i>
+                `;
+            }
+
+            // Append message and actions to container
+            containerDiv.appendChild(messageDiv);
+            containerDiv.appendChild(actionsDiv);
+            
+            // Add click handlers directly to the icons with stopPropagation
+            const icons = actionsDiv.querySelectorAll('.action-btn');
+            icons.forEach(icon => {
+                icon.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (icon.classList.contains('copy-btn')) {
+                        const text = containerDiv.querySelector('.message-text').innerText;
+                        try {
+                            await navigator.clipboard.writeText(text);
+                            // Change copy icon to check icon to indicate success
+                            icon.classList.remove('fa-copy');
+                            icon.classList.add('fa-check');
+                            setTimeout(() => {
+                                icon.classList.remove('fa-check');
+                                icon.classList.add('fa-copy');
+                            }, 2000);
+                        } catch (error) {
+                            console.error('Copy failed', error);
+                        }
+                    }
+                    
+                    if (icon.classList.contains('regenerate-btn')) {
+                        // Find the corresponding user message preceding this AI response
+                        const currentContainer = icon.closest('.message-container');
+                        let userContainer = currentContainer.previousElementSibling;
+                        while (userContainer && !userContainer.classList.contains('user-message-container')) {
+                            userContainer = userContainer.previousElementSibling;
+                        }
+                        const userMessage = userContainer ? userContainer.querySelector('.message-text').innerText.trim() : '';
+                        if (userMessage && !isGenerating) {
+                            sendMessage(userMessage, true);
+                        }
+                    }
+                    
+                    if (icon.classList.contains('edit-btn')) {
+                        const container = icon.closest('.message-container');
+                        const messageDiv = container.querySelector('.message');
+                        const messageText = messageDiv.querySelector('.message-text');
+                        const originalText = messageText.textContent;
+                        
+                        // Create textarea without inline styles
+                        const textarea = document.createElement('textarea');
+                        textarea.value = originalText;
+                        textarea.className = 'editing-textarea'; // Add a class instead of inline styles
+                        
+                        // Replace content with textarea
+                        messageText.innerHTML = '';
+                        messageText.appendChild(textarea);
+                        textarea.focus();
+                        
+                        // Create save/cancel buttons
+                        const editActions = document.createElement('div');
+                        editActions.className = 'edit-actions';
+                        editActions.innerHTML = `
+                            <i class="fas fa-check save-edit" title="Save"></i>
+                            <i class="fas fa-times cancel-edit" title="Cancel"></i>
+                        `;
+                        messageText.appendChild(editActions);
+                        
+                        // Add handlers for save/cancel
+                        editActions.querySelector('.save-edit').addEventListener('click', () => {
+                            const newText = textarea.value.trim();
+                            if (newText && newText !== originalText) {
+                                messageText.innerHTML = formatMessage(newText);
+                                // Update in chat manager if needed
+                                const messageIndex = chatManager.getMessageIndex(chatManager.currentChatId, originalText);
+                                if (messageIndex !== -1) {
+                                    chatManager.chats[chatManager.currentChatId].messages[messageIndex].content = newText;
+                                    chatManager.saveChats();
+                                }
+                            } else {
+                                messageText.innerHTML = formatMessage(originalText);
+                            }
+                        });
+                        
+                        editActions.querySelector('.cancel-edit').addEventListener('click', () => {
+                            messageText.innerHTML = formatMessage(originalText);
+                        });
+                        
+                        // Handle Escape key
+                        textarea.addEventListener('keydown', (e) => {
+                            if (e.key === 'Escape') {
+                                messageText.innerHTML = formatMessage(originalText);
+                            }
+                        });
+                    }
+                    
+                    if (icon.classList.contains('remove-btn')) {
+                        const container = icon.closest('.message-container');
+                        const messageText = container.querySelector('.message-text').textContent;
+                        
+                        // Show delete confirmation modal
+                        const deleteChatModal = new bootstrap.Modal(document.getElementById('deleteChatModal'));
+                        const confirmDeleteBtn = document.getElementById('confirmDeleteChat');
+                        
+                        // Update modal title and message for message deletion
+                        document.getElementById('deleteChatModalLabel').textContent = 'Delete Message';
+                        document.querySelector('#deleteChatModal .modal-body').textContent = 
+                            'This will delete this message and all subsequent messages. This action cannot be undone.';
+                        
+                        // Set up the delete confirmation
+                        const handleDelete = () => {
+                            // Find the index of the message in the chat
+                            const messageIndex = chatManager.getMessageIndex(chatManager.currentChatId, messageText);
+                            if (messageIndex !== -1) {
+                                // Remove this message and all subsequent messages
                                 chatManager.removeMessage(chatManager.currentChatId, messageIndex);
+                                
+                                // Remove all message containers from this one onwards
+                                let currentContainer = container;
+                                while (currentContainer) {
+                                    const nextContainer = currentContainer.nextElementSibling;
+                                    currentContainer.remove();
+                                    currentContainer = nextContainer;
+                                }
+
+                                // Update the chat history display
                                 updateChatHistory();
                             }
-                        }
-                    });
-                }
-            }
-
-            if (className === 'ai-message') {
-                // Always add regenerate button handler
-                messageDiv.querySelector('.regenerate-btn').addEventListener('click', async () => {
-                    const questionMessage = messageDiv.previousElementSibling;
-                    if (questionMessage && questionMessage.classList.contains('user-message')) {
-                        // Get all subsequent messages
-                        let currentElement = messageDiv;
-                        const subsequentMessages = [];
-                        while (currentElement.nextElementSibling) {
-                            subsequentMessages.push(currentElement.nextElementSibling);
-                            currentElement = currentElement.nextElementSibling;
-                        }
+                            deleteChatModal.hide();
+                            
+                            // Remove event listener after execution
+                            confirmDeleteBtn.removeEventListener('click', handleDelete);
+                        };
                         
-                        // Remove all subsequent messages
-                        subsequentMessages.forEach(msg => msg.remove());
+                        // Add event listener for confirmation
+                        confirmDeleteBtn.addEventListener('click', handleDelete);
                         
-                        // Remove this AI message
-                        messageDiv.remove();
+                        // Show the modal
+                        deleteChatModal.show();
                         
-                        // Get the index of the current message in chat history
-                        const messageIndex = chatManager.getMessageIndex(chatManager.currentChatId, message);
-                        if (messageIndex !== -1) {
-                            // Remove all subsequent messages from chat manager
-                            chatManager.chats[chatManager.currentChatId].messages.splice(messageIndex);
-                            chatManager.saveChats();
-                        }
-                        
-                        // Regenerate the AI response
-                        const userQuestion = questionMessage.querySelector('.message-text').textContent;
-                        await sendMessage(userQuestion, true);
+                        // Clean up event listener when modal is hidden
+                        document.getElementById('deleteChatModal').addEventListener('hidden.bs.modal', function () {
+                            confirmDeleteBtn.removeEventListener('click', handleDelete);
+                            // Reset modal title and message back to default
+                            document.getElementById('deleteChatModalLabel').textContent = 'Delete Chat';
+                            document.querySelector('#deleteChatModal .modal-body').textContent = 
+                                'this action will have consequences...';
+                        });
                     }
                 });
+            });
 
-                // Add copy and edit handlers only for complete messages
-                if (!isIncomplete) {
-                    if (messageDiv.querySelector('.copy-btn')) {
-                        messageDiv.querySelector('.copy-btn').addEventListener('click', () => {
-                            navigator.clipboard.writeText(message).then(() => {
-                                const btn = messageDiv.querySelector('.copy-btn');
-                                btn.innerHTML = '<i class="fas fa-check"></i>';
-                                setTimeout(() => {
-                                    btn.innerHTML = '<i class="fas fa-copy"></i>';
-                                }, 2000);
-                            });
-                        });
+            // Also add click handlers for version navigation buttons if they exist
+            const versionBtns = containerDiv.querySelectorAll('.version-btn');
+            versionBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Determine navigation direction from a class on the button:
+                    const direction = btn.classList.contains('prev-version') ? -1 : 1;
+                    const aiIndexStr = containerDiv.getAttribute('data-ai-index');
+                    if (aiIndexStr !== null) {
+                        const aiIndex = parseInt(aiIndexStr, 10);
+                        window.navigateVersion(aiIndex, direction);
                     }
-                    if (messageDiv.querySelector('.edit-btn')) {
-                        messageDiv.querySelector('.edit-btn').addEventListener('click', () => {
-                            const messageText = messageDiv.querySelector('.message-text');
-                            const originalText = message;
-                            
-                            // Add editing class to message
-                            messageDiv.classList.add('editing');
-                            
-                            // Create textarea with original content
-                            const textarea = document.createElement('textarea');
-                            textarea.value = originalText;
-                            // Remove the inline width style
-                            textarea.style.minHeight = '150px';
-                            
-                            // Create edit actions
-                            const editActions = document.createElement('div');
-                            editActions.className = 'edit-actions';
-                            editActions.innerHTML = `
-                                <button class="action-btn save-edit" title="Save">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button class="action-btn cancel-edit" title="Cancel">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            `;
-                            
-                            // Replace content with textarea and actions
-                            messageText.innerHTML = '';
-                            messageText.appendChild(textarea);
-                            messageText.appendChild(editActions);
-                            
-                            // Focus textarea
-                            textarea.focus();
-                            
-                            // Handle save
-                            editActions.querySelector('.save-edit').addEventListener('click', () => {
-                                const newText = textarea.value.trim();
-                                if (newText && newText !== originalText) {
-                                    // If it's a user message, update in chat manager
-                                    if (className === 'user-message') {
-                                        const messageIndex = chatManager.getMessageIndex(chatManager.currentChatId, originalText);
-                                        if (messageIndex !== -1) {
-                                            chatManager.chats[chatManager.currentChatId].messages[messageIndex].content = newText;
-                                            chatManager.saveChats();
-                                            
-                                            // Remove subsequent messages as they may no longer be relevant
-                                            let currentElement = messageDiv;
-                                            while (currentElement.nextElementSibling) {
-                                                currentElement.nextElementSibling.remove();
-                                            }
-                                            
-                                            // Send new message to get updated response
-                                            sendMessage(newText, true);
-                                        }
-                                    }
-                                    messageText.innerHTML = formatMessage(newText);
-                                } else {
-                                    messageText.innerHTML = formatMessage(originalText);
-                                }
-                                messageDiv.classList.remove('editing');
-                            });
-                            
-                            // Handle cancel
-                            editActions.querySelector('.cancel-edit').addEventListener('click', () => {
-                                messageText.innerHTML = formatMessage(originalText);
-                                messageDiv.classList.remove('editing');
-                            });
-                            
-                            // Handle Escape key to cancel
-                            textarea.addEventListener('keydown', (e) => {
-                                if (e.key === 'Escape') {
-                                    messageText.innerHTML = formatMessage(originalText);
-                                    messageDiv.classList.remove('editing');
-                                }
-                            });
-                        });
+                });
+            });
+
+            // Append container to messages
+            messagesContainer.appendChild(containerDiv);
+            setupMessageActions(containerDiv); // Add this line
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Rest of your existing event handler code...
+        }
+
+        // Add version navigation function
+        function navigateVersion(messageIndex, direction) {
+            const result = chatManager.navigateVersion(
+                chatManager.currentChatId, 
+                messageIndex, 
+                direction
+            );
+            
+            if (result) {
+                const chatMessages = document.getElementById('chat-messages');
+                const messageContainers = chatMessages.querySelectorAll('.message-container');
+                const targetContainer = Array.from(messageContainers).find(container => 
+                    container.getAttribute('data-ai-index') === messageIndex.toString()
+                );
+                
+                if (targetContainer) {
+                    // Remove all subsequent messages from UI
+                    let currentElem = targetContainer.nextElementSibling;
+                    while (currentElem) {
+                        const nextElem = currentElem.nextElementSibling;
+                        currentElem.remove();
+                        currentElem = nextElem;
                     }
+
+                    const messageText = targetContainer.querySelector('.message-text');
+                    const versionNav = targetContainer.querySelector('.version-nav');
+                    
+                    // Add changing animation
+                    messageText.classList.add('changing');
+                    
+                    setTimeout(() => {
+                        // Update content
+                        messageText.innerHTML = formatMessage(result.content);
+                        messageText.classList.remove('changing');
+                        messageText.classList.add('changed');
+                        
+                        if (versionNav) {
+                            // Update version info
+                            versionNav.querySelector('.version-info').textContent = 
+                                `${result.currentVersion + 1}/${result.totalVersions}`;
+                            
+                            // Update button states
+                            const [prevBtn, nextBtn] = versionNav.querySelectorAll('.version-btn');
+                            prevBtn.disabled = !result.hasOlder;
+                            nextBtn.disabled = !result.hasNewer;
+                        }
+                        
+                        setTimeout(() => {
+                            messageText.classList.remove('changed');
+                        }, 300);
+                    }, 300);
                 }
             }
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Update formatMessage function with Markdown support
         function formatMessage(message) {
-            // Bold (**text**)
-            message = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Store any code blocks temporarily
+            const codeBlocks = [];
+            message = message.replace(/```([\s\S]*?)```/g, (match) => {
+                codeBlocks.push(match);
+                return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+            });
             
-            // Italic (*text*)
-            message = message.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Remove any '>' character that appears alone on any line
+            message = message.replace(/^\s*>\s*$/gm, '');
+            message = message.replace(/\n\s*>\s*$/g, '');
             
-            // Strikethrough (~~text~~)
-            message = message.replace(/~~(.*?)~~/g, '<del>$1</del>');
+            // Remove multiple consecutive empty lines
+            message = message.replace(/\n{3,}/g, '\n\n');
             
-            // Code blocks (```text```)
-            message = message.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            // Remove trailing whitespace from each line
+            message = message.replace(/[ \t]+$/gm, '');
             
-            // Inline code (`text`)
-            message = message.replace(/`([^`]+)`/g, '<code>$1</code>');
-            
-            // Headers (# text)
-            message = message.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-            message = message.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-            message = message.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-            
-            // Blockquotes (> text)
-            message = message.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
-            
-            // Lists
-            // Unordered lists (- text)
-            message = message.replace(/^- (.*$)/gm, '<li>$1</li>');
-            message = message.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
-            
-            // Ordered lists (1. text)
-            message = message.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
-            message = message.replace(/(<li>.*<\/li>)/gs, '<ol>$1></ol>');
-            
-            // Bullet points
-            message = message.replace(/^[•]\s/gm, '<br>• ');
-            
-            // Add spacing after periods for readability
-            message = message.replace(/\./g, '. ');
+            // Apply Markdown formatting
+            message = message
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/~~(.*?)~~/g, '<del>$1</del>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/^## (.*$)/gm, '<h2>$2</h2>')
+                .replace(/^### (.*$)/gm, '<h3>$3</h3>')
+                .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+                .replace(/^- (.*$)/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+                .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gs, '<ol>$1</ol>')
+                .replace(/^[•]\s/gm, '<br>• ');
+
+            // Restore code blocks with proper formatting
+            codeBlocks.forEach((block, i) => {
+                const code = block.replace(/```([\s\S]*?)```/g, '$1').trim();
+                message = message.replace(
+                    `__CODE_BLOCK_${i}__`,
+                    `<pre><code>${code}</code></pre>`
+                );
+            });
             
             // Convert URLs to links
             message = message.replace(
-                /(https?:\/\/[^\s]+)/g,
+                /(https?:\/\/[^\s<]+)/g,
                 '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
             );
             
-            // Add line breaks
-            message = message.replace(/\n/g, '<br>');
+            // Add line breaks but preserve formatted blocks
+            message = message.replace(/\n(?![^<]*>)/g, '<br>');
             
             return message;
         }
@@ -1460,6 +964,9 @@ require_once 'config/config.php';
             // Auto-resize textarea
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            
+            // Hide stop button when input is being typed
+            document.getElementById('stop-button').style.display = 'none';
         });
 
         // Handle form submission (for send button click)
@@ -1496,6 +1003,28 @@ require_once 'config/config.php';
             this.style.transform = 'translateY(50%)';
         });
 
+        // Add stop button handler
+        document.getElementById('stop-button').addEventListener('click', function() {
+            if (currentAbortController) {
+                // Add clicking animation
+                this.style.transform = 'translateY(50%) scale(0.9)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(50%) scale(1)';
+                }, 150);
+                
+                currentAbortController.abort();
+                this.classList.remove('visible');
+                setTimeout(() => {
+                    this.style.display = 'none';
+                    document.querySelector('.send-button').style.display = 'flex';
+                }, 300);
+                
+                messageInput.disabled = false;
+                messageInput.focus();
+                isGenerating = false;
+                updateMessageActionStates();
+            }
+        });
 
         // New Chat Button Handling
         newChatBtn.addEventListener('click', function() {
@@ -1525,70 +1054,145 @@ require_once 'config/config.php';
         });
 
         // Simulated chat history loading function
-        function loadChatHistory(chatId) {
+        async function loadChatHistory(chatId) {
             if (currentAbortController) {
                 currentAbortController.abort();
                 currentAbortController = null;
             }
             
-            // Clear any pending chat when loading a saved chat
-            chatManager.pendingChat = null;
-            
             const chat = chatManager.getChatHistory(chatId);
             if (!chat) return;
 
-            // Update URL first
             updateURL(chatId);
-            
             chatManager.currentChatId = chatId;
             updateChatHistory();
 
             const chatMessages = document.getElementById('chat-messages');
             chatMessages.innerHTML = '';
 
-            chat.messages.forEach(msg => {
+            // Display messages from current branch
+            const messages = chatManager.getCurrentBranchMessages(chatId);
+            messages.forEach(msg => {
                 const className = msg.isAI ? 'ai-message' : 'user-message';
-                // Add incomplete class if the message was incomplete
-                const fullClassName = msg.isIncomplete ? `${className} incomplete` : className;
-                addMessage(msg.content, fullClassName);
+                addMessage(msg.content, className);
             });
+
+            // Setup actions for all messages
+            document.querySelectorAll('.message-container').forEach(container => {
+                setupMessageActions(container);
+            });
+
+            // Check for incomplete response
+            const incompleteResponse = await chatManager.resumeResponse(chatId);
+            if (incompleteResponse) {
+                // Resume the interrupted response
+                sendMessage(incompleteResponse.message, false, true);
+            }
         }
 
-        // Add delete chat function
+        // Update delete chat function
         function deleteChat(chatId) {
             event.stopPropagation();
-            if (confirm('Are you sure you want to delete this chat?')) {
+            
+            // Store the chat ID to be deleted
+            const deleteChatModal = new bootstrap.Modal(document.getElementById('deleteChatModal'));
+            const confirmDeleteBtn = document.getElementById('confirmDeleteChat');
+            
+            // Set up the delete confirmation
+            const handleDelete = () => {
                 chatManager.deleteChat(chatId);
                 if (chatManager.currentChatId === chatId) {
                     chatManager.currentChatId = null;
                     document.getElementById('chat-messages').innerHTML = '';
                 }
                 updateChatHistory();
-            }
+                deleteChatModal.hide();
+                
+                // Remove event listener after execution
+                confirmDeleteBtn.removeEventListener('click', handleDelete);
+            };
+            
+            // Add event listener for confirmation
+            confirmDeleteBtn.addEventListener('click', handleDelete);
+            
+            // Show the modal
+            deleteChatModal.show();
+            
+            // Clean up event listener when modal is hidden
+            document.getElementById('deleteChatModal').addEventListener('hidden.bs.modal', function () {
+                confirmDeleteBtn.removeEventListener('click', handleDelete);
+            });
         }
 
         // Function to update chat history display
         function updateChatHistory() {
-            const chatHistoryDiv = document.getElementById('chat-history');
-            chatHistoryDiv.innerHTML = '';
+            const searchQuery = document.getElementById('chat-search')?.value || '';
+            const chatHistoryContent = document.getElementById('chat-history-content');
+            const groups = chatManager.searchChats(searchQuery);
             
-            const chats = chatManager.loadChats();
-            Object.values(chats)
-                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                .forEach(chat => {
-                    const div = document.createElement('div');
-                    div.className = `chat-history-item${chat.id === chatManager.currentChatId ? ' active' : ''}`;
-                    div.setAttribute('data-chat-id', chat.id);
-                    div.innerHTML = `
-                        <i class="fas fa-message"></i>
-                        <span class="chat-title">${chat.title}</span>
-                        <button class="delete-chat" onclick="deleteChat('${chat.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
+            if (Object.values(groups).flat().length === 0) {
+                chatHistoryContent.innerHTML = `
+                    <div class="chat-history-empty">
+                        ${searchQuery ? 'No chats found' : 'No chats yet'}
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            for (const [groupName, chats] of Object.entries(groups)) {
+                if (chats.length === 0) continue;
+
+                html += `
+                    <div class="chat-history-group">
+                        <div class="chat-history-group-title">${groupName}</div>
+                `;
+
+                chats.forEach(chat => {
+                    const messageCount = chat.messages.length;
+                    const isActive = chat.id === chatManager.currentChatId;
+                    
+                    html += `
+                        <div class="chat-history-item${isActive ? ' active' : ''}" data-chat-id="${chat.id}">
+                            <div class="chat-title">
+                                <i class="fas fa-message"></i>
+                                <span>${chat.title}</span>
+                            </div>
+                            <div class="chat-meta">
+                                <span class="chat-timestamp">${chatManager.formatRelativeTime(chat.timestamp)}</span>
+                                <button class="delete-chat" onclick="deleteChat('${chat.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     `;
-                    div.addEventListener('click', () => loadChatHistory(chat.id));
-                    chatHistoryDiv.appendChild(div);
                 });
+
+                html += '</div>';
+            }
+            
+            chatHistoryContent.innerHTML = html;
+
+            // Add click handlers
+            document.querySelectorAll('.chat-history-item').forEach(item => {
+                item.addEventListener('click', () => loadChatHistory(item.dataset.chatId));
+            });
+        }
+
+        // Add search handler
+        document.getElementById('chat-search')?.addEventListener('input', debounce(updateChatHistory, 300));
+
+        // Debounce helper function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
 
         // Add this function to get chat ID from URL
@@ -1597,24 +1201,28 @@ require_once 'config/config.php';
             return urlParams.get('chat');
         }
 
-        // Add this code to handle back/forward browser navigation
+        // Update the base URL handler in the popstate event listener
         window.addEventListener('popstate', function(event) {
             const chatId = getChatIdFromURL();
             if (chatId) {
                 loadChatHistory(chatId);
             } else {
-                // Handle return to base URL (no chat selected)
                 chatManager.currentChatId = null;
                 document.getElementById('chat-messages').innerHTML = `
-                    <div class="message ai-message">
-                        <i class="message-icon fas fa-robot"></i>
-                        <div class="message-text">
-                            <strong>Hello! 👋</strong> I'm Titano AI. How can I assist you today? 
-                            Feel free to ask me anything - I'm here to help with information, 
-                            ideas, or creative solutions!
-                        </div>
+                    <div class="welcome-message" style="
+                        display: flex;
+                        height: 100%;
+                        justify-content: center;
+                        align-items: center;
+                        text-align: center;
+                        color: var(--text-color);
+                        font-size: 1.5rem;
+                        opacity: 0.8;
+                    ">
+                        Chat with your local ai now, <span id="username-display"></span>!
                     </div>
                 `;
+                refreshUsername();
                 updateChatHistory();
             }
         });
@@ -1629,10 +1237,6 @@ require_once 'config/config.php';
             fetchModels();
             updateChatHistory();
         });
-
-        // Remove or comment out these lines since they're now handled in DOMContentLoaded
-        // fetchModels();
-        // updateChatHistory();
 
         // Make updateChatHistory function globally accessible
         window.updateChatHistory = updateChatHistory;
@@ -1660,52 +1264,83 @@ require_once 'config/config.php';
             const progressDiv = document.getElementById('downloadProgress');
             const progressBar = progressDiv.querySelector('.progress-bar');
             const progressText = document.getElementById('progressText');
+            const cancelBtn = document.getElementById('cancelDownload');
 
             if (modelName) {
                 try {
                     saveBtn.disabled = true;
-                    progressDiv.classList.remove('d-none');
+                    progressDiv.style.display = 'block'; // Changed from classList.remove('d-none')
                     progressBar.style.width = '0%';
                     progressText.textContent = 'Starting download...';
+                    cancelBtn.style.display = 'block';
 
                     // Create EventSource for progress updates
                     const eventSource = new EventSource(`api/add_model.php?model=${encodeURIComponent(modelName)}`);
 
-                    eventSource.onmessage = (event) => {
-                        const data = JSON.parse(event.data);
-                        
-                        if (data.status === 'pulling') {
-                            const progress = Math.round((data.completed / data.total) * 100);
-                            progressBar.style.width = `${progress}%`;
-                            progressText.textContent = `Downloading: ${progress}% (${formatBytes(data.completed)} / ${formatBytes(data.total)})`;
-                        } else if (data.status === 'complete') {
-                            progressBar.style.width = '100%';
-                            progressText.textContent = 'Download complete!';
+                    // Add cancel button click handler
+                    cancelBtn.onclick = async () => {
+                        try {
+                            await fetch(`api/cancel_download.php?model=${encodeURIComponent(modelName)}`, {
+                                method: 'POST'
+                            });
                             eventSource.close();
-                            
-                            // Refresh model list and close modal after a delay
+                            progressText.textContent = 'Download cancelled';
+                            cancelBtn.style.display = 'none';
+                            saveBtn.disabled = false;
                             setTimeout(() => {
-                                fetchModels();
-                                const modal = bootstrap.Modal.getInstance(document.getElementById('addModelModal'));
-                                modal.hide();
-                                document.getElementById('addModelForm').reset();
-                                progressDiv.classList.add('d-none');
-                                saveBtn.disabled = false;
-                            }, 1500);
-                        } else if (data.status === 'error') {
-                            throw new Error(data.error);
+                                progressDiv.style.display = 'none'; // Changed from classList.add('d-none')
+                            }, 2000);
+                        } catch (error) {
+                            console.error('Error cancelling download:', error);
                         }
                     };
 
-                    eventSource.onerror = () => {
+                    eventSource.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log('Progress update:', data); // Add debugging
+
+                            if (data.status === 'pulling') {
+                                const progress = Math.round((data.completed / data.total) * 100);
+                                progressBar.style.width = `${progress}%`;
+                                progressText.textContent = `Downloading: ${progress}% (${formatBytes(data.completed)} / ${formatBytes(data.total)})`;
+                            } else if (data.status === 'complete') {
+                                progressBar.style.width = '100%';
+                                progressText.textContent = 'Download complete!';
+                                cancelBtn.style.display = 'none';
+                                eventSource.close();
+                                
+                                // Refresh model list and close modal after a delay
+                                setTimeout(() => {
+                                    fetchModels();
+                                    const modal = bootstrap.Modal.getInstance(document.getElementById('addModelModal'));
+                                    modal.hide();
+                                    document.getElementById('addModelForm').reset();
+                                    progressDiv.style.display = 'none';
+                                    saveBtn.disabled = false;
+                                }, 1500);
+                            } else if (data.status === 'error' || data.status === 'cancelled') {
+                                throw new Error(data.error || 'Download cancelled');
+                            }
+                        } catch (error) {
+                            console.error('Error parsing event data:', error);
+                            throw error;
+                        }
+                    };
+
+                    eventSource.onerror = (error) => {
+                        console.error('EventSource error:', error);
                         eventSource.close();
+                        cancelBtn.style.display = 'none';
                         throw new Error('Failed to connect to server');
                     };
 
                 } catch (error) {
+                    console.error('Download error:', error);
                     progressText.textContent = `Error: ${error.message}`;
                     progressDiv.classList.add('text-danger');
                     saveBtn.disabled = false;
+                    cancelBtn.style.display = 'none';
                 }
             }
         });
@@ -1718,8 +1353,439 @@ require_once 'config/config.php';
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
+
+        // Add this function to update username
+        async function refreshUsername() {
+            try {
+                const response = await fetch('api/get_user_info.php');
+                const data = await response.json();
+                if (data.username) {
+                    document.getElementById('username-display').textContent = data.username;
+                }
+            } catch (error) {
+                console.error('Error fetching username:', error);
+            }
+        }
+
+        // Call refreshUsername when page loads
+        document.addEventListener('DOMContentLoaded', refreshUsername);
+
+        // Make navigateVersion function global
+        window.navigateVersion = function(messageIndex, direction) {
+            const result = chatManager.navigateVersion(
+                chatManager.currentChatId, 
+                messageIndex, 
+                direction
+            );
+            
+            if (result) {
+                const aiMessages = document.querySelectorAll('.ai-message-container');
+                const targetContainer = Array.from(aiMessages).find(container => {
+                    const messageText = container.querySelector('.message-text');
+                    const currentMessage = chatManager.chats[chatManager.currentChatId].messages
+                        .find(m => m.isAI && m.aiIndex === messageIndex);
+                    return currentMessage && messageText.textContent === currentMessage.content;
+                });
+
+                if (targetContainer) {
+                    const messageText = targetContainer.querySelector('.message-text');
+                    
+                    // Add changing class to trigger fade out
+                    messageText.classList.add('changing');
+                    
+                    // After fade out, update content and trigger fade in
+                    setTimeout(() => {
+                        messageText.innerHTML = formatMessage(result.content);
+                        messageText.classList.remove('changing');
+                        messageText.classList.add('changed');
+                        
+                        // Update version counter and buttons
+                        const versionNav = targetContainer.querySelector('.version-nav');
+                        if (versionNav) {
+                            versionNav.querySelector('.version-info').textContent = 
+                                `${result.currentVersion + 1}/${result.totalVersions}`;
+                            
+                            // Update button states
+                            const [prevBtn, nextBtn] = versionNav.querySelectorAll('.version-btn');
+                            prevBtn.disabled = result.currentVersion === 0;
+                            nextBtn.disabled = result.currentVersion === result.totalVersions - 1;
+                        }
+                        
+                        // Remove changed class after animation completes
+                        setTimeout(() => {
+                            messageText.classList.remove('changed');
+                        }, 300);
+                    }, 300);
+                }
+            }
+        }
+
+        // Replace the navigateVersion function with this fixed version
+        function navigateVersion(aiIndex, direction) {
+            // Prevent rapid clicks by disabling buttons temporarily
+            const versionBtns = document.querySelectorAll('.version-btn');
+            versionBtns.forEach(btn => btn.disabled = true);
+            
+            const result = chatManager.navigateVersion(
+                chatManager.currentChatId, 
+                aiIndex, 
+                direction
+            );
+            
+            if (result) {
+                const messageContainers = document.querySelectorAll('.ai-message-container');
+                const targetContainer = Array.from(messageContainers).find(container => 
+                    container.getAttribute('data-ai-index') === aiIndex.toString()
+                );
+                
+                if (targetContainer) {
+                    const messageText = targetContainer.querySelector('.message-text');
+                    const versionNav = targetContainer.querySelector('.version-nav');
+                    
+                    // Add fade-out effect
+                    messageText.classList.add('changing');
+                    
+                    setTimeout(() => {
+                        // Update message content
+                        messageText.innerHTML = formatMessage(result.content);
+                        messageText.classList.remove('changing');
+                        messageText.classList.add('changed');
+                        
+                        if (versionNav) {
+                            // Update version info
+                            versionNav.querySelector('.version-info').textContent = 
+                                `${result.currentVersion + 1}/${result.totalVersions}`;
+                            
+                            // Get fresh references to buttons
+                            const prevBtn = versionNav.querySelector('.version-btn:first-child');
+                            const nextBtn = versionNav.querySelector('.version-btn:last-child');
+                            
+                            // Update button states
+                            prevBtn.disabled = !result.hasOlder;
+                            nextBtn.disabled = !result.hasNewer;
+                            
+                            // Re-add event listeners
+                            prevBtn.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (!prevBtn.disabled) {
+                                    navigateVersion(aiIndex, -1);
+                                }
+                            };
+                            
+                            nextBtn.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (!nextBtn.disabled) {
+                                    navigateVersion(aiIndex, 1);
+                                }
+                            };
+                        }
+                        
+                        // Remove changed class after animation
+                        setTimeout(() => {
+                            messageText.classList.remove('changed');
+                            // Re-enable all version buttons
+                            document.querySelectorAll('.version-btn').forEach(btn => {
+                                if (!btn.hasAttribute('data-disabled')) {
+                                    btn.disabled = false;
+                                }
+                            });
+                        }, 300);
+                    }, 300);
+                }
+            } else {
+                // Re-enable buttons if navigation failed
+                versionBtns.forEach(btn => {
+                    if (!btn.hasAttribute('data-disabled')) {
+                        btn.disabled = false;
+                    }
+                });
+            }
+        }
+
+        // Add this function to initialize version navigation buttons
+        function setupVersionNavigation(messageContainer, aiIndex, currentVersion, totalVersions) {
+            const versionNav = messageContainer.querySelector('.version-nav');
+            if (versionNav) {
+                const prevBtn = versionNav.querySelector('.version-btn:first-child');
+                const nextBtn = versionNav.querySelector('.version-btn:last-child');
+                
+                // Remove existing listeners
+                prevBtn.replaceWith(prevBtn.cloneNode(true));
+                nextBtn.replaceWith(nextBtn.cloneNode(true));
+                
+                // Get the new button references
+                const newPrevBtn = versionNav.querySelector('.version-btn:first-child');
+                const newNextBtn = versionNav.querySelector('.version-btn:last-child');
+                
+                // Add new listeners
+                newPrevBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!newPrevBtn.disabled) {
+                        navigateVersion(aiIndex, -1);
+                    }
+                };
+                
+                newNextBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!newNextBtn.disabled) {
+                        navigateVersion(aiIndex, 1);
+                    }
+                };
+                
+                // Set initial states
+                newPrevBtn.disabled = currentVersion === 0;
+                newNextBtn.disabled = currentVersion === totalVersions - 1;
+            }
+        }
+
+        // Add new version handling function
+        function handleVersionChange(aiIndex, direction, container) {
+            const result = chatManager.navigateVersion(
+                chatManager.currentChatId,
+                aiIndex,
+                direction
+            );
+
+            if (result) {
+                const messageContainer = container.closest('.message-container');
+                const messageText = messageContainer.querySelector('.message-text');
+                const versionControl = container.querySelector('.version-control');
+
+                // Fade out
+                messageText.classList.add('changing');
+
+                setTimeout(() => {
+                    // Update content
+                    messageText.innerHTML = formatMessage(result.content);
+                    messageText.classList.remove('changing');
+                    messageText.classList.add('changed');
+
+                    // Update version controls
+                    if (versionControl) {
+                        const versionCount = versionControl.querySelector('.version-count');
+                        versionCount.textContent = `${result.currentVersion + 1}/${result.totalVersions}`;
+
+                        const prevBtn = versionControl.querySelector('.version-prev');
+                        const nextBtn = versionControl.querySelector('.version-next');
+
+                        prevBtn.disabled = !result.hasOlder;
+                        nextBtn.disabled = !result.hasNewer;
+                    }
+
+                    setTimeout(() => {
+                        messageText.classList.remove('changed');
+                    }, 300);
+                }, 300);
+            }
+        }
+
+        // Add to your window unload handler
+        window.addEventListener('beforeunload', function() {
+            // Save the current state before unloading
+            chatManager.saveChats();
+        });
+
+        // Add this function inside your script tag, before any other functions
+
+        function setupMessageActions(containerDiv) {
+            const actionsDiv = containerDiv.querySelector('.message-actions');
+            if (!actionsDiv) return;
+
+            const icons = actionsDiv.querySelectorAll('.action-btn');
+            icons.forEach(icon => {
+                icon.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Prevent actions while generating
+                    if (isGenerating && (icon.classList.contains('regenerate-btn') || icon.classList.contains('edit-btn') || icon.classList.contains('remove-btn'))) {
+                        return;
+                    }
+                    
+                    if (icon.classList.contains('copy-btn')) {
+                        const text = containerDiv.querySelector('.message-text').innerText;
+                        try {
+                            await navigator.clipboard.writeText(text);
+                            icon.classList.remove('fa-copy');
+                            icon.classList.add('fa-check');
+                            setTimeout(() => {
+                                icon.classList.remove('fa-check');
+                                icon.classList.add('fa-copy');
+                            }, 2000);
+                        } catch (error) {
+                            console.error('Copy failed:', error);
+                        }
+                    }
+                    
+                    if (icon.classList.contains('regenerate-btn')) {
+                        const currentContainer = icon.closest('.message-container');
+                        let userContainer = currentContainer.previousElementSibling;
+                        while (userContainer && !userContainer.classList.contains('user-message-container')) {
+                            userContainer = userContainer.previousElementSibling;
+                        }
+                        const userMessage = userContainer ? userContainer.querySelector('.message-text').innerText.trim() : '';
+                        if (userMessage && !isGenerating) {
+                            sendMessage(userMessage, true);
+                        }
+                    }
+                    
+                    if (icon.classList.contains('edit-btn')) {
+                        // ... existing edit button code ...
+                    }
+                    
+                    if (icon.classList.contains('remove-btn')) {
+                        // ... existing remove button code ...
+                    }
+                });
+            });
+
+            // Setup version control if it exists
+            const versionControl = actionsDiv.querySelector('.version-control');
+            if (versionControl) {
+                const prevBtn = versionControl.querySelector('.version-prev');
+                const nextBtn = versionControl.querySelector('.version-next');
+
+                prevBtn?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!prevBtn.disabled) {
+                        const aiIndex = containerDiv.getAttribute('data-ai-index');
+                        handleVersionChange(parseInt(aiIndex), -1, actionsDiv);
+                    }
+                });
+
+                nextBtn?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!nextBtn.disabled) {
+                        const aiIndex = containerDiv.getAttribute('data-ai-index');
+                        handleVersionChange(parseInt(aiIndex), 1, actionsDiv);
+                    }
+                });
+            }
+        }
+
+        // Add branch switching function
+        function switchToBranch(chatId, branchId) {
+            if (chatManager.switchBranch(chatId, branchId)) {
+                loadChatHistory(chatId);
+            }
+        }
+
+        // Update function to handle message action states
+        function updateMessageActionStates() {
+            const actionButtons = document.querySelectorAll('.regenerate-btn, .edit-btn, .remove-btn');
+            actionButtons.forEach(button => {
+                if (isGenerating) {
+                    button.style.opacity = '0.5';
+                    button.style.cursor = 'not-allowed';
+                } else {
+                    button.style.opacity = '1';
+                    button.style.cursor = 'pointer';
+                }
+            });
+        }
+
+        // Add observer to update action states when messages are added
+        const chatMessages = document.getElementById('chat-messages');
+        const observer = new MutationObserver(() => {
+            updateMessageActionStates();
+        });
+
+        observer.observe(chatMessages, {
+            childList: true,
+            subtree: true
+        });
+
+        // Add refresh button handler
+        document.getElementById('refresh-models').addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            icon.classList.add('rotating');
+            fetchModels().then(() => {
+                setTimeout(() => {
+                    icon.classList.remove('rotating');
+                }, 500);
+            });
+        });
+
+        // Add model validation
+        document.getElementById('checkModel').addEventListener('click', async () => {
+            const modelName = document.getElementById('modelName').value.trim();
+            const statusDiv = document.getElementById('modelStatus');
+            const saveBtn = document.getElementById('saveModel');
+            
+            if (!modelName) return;
+            
+            try {
+                // Show loading state
+                statusDiv.innerHTML = `
+                    <div class="d-flex align-items-center text-info">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Checking model availability...
+                    </div>
+                `;
+                statusDiv.style.display = 'block';
+                
+                const response = await fetch(`api/check_model.php?model=${encodeURIComponent(modelName)}`);
+                const data = await response.json();
+                
+                if (data.isLocal) {
+                    statusDiv.innerHTML = `
+                        <div class="text-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            ${data.message}
+                        </div>
+                    `;
+                    saveBtn.disabled = true;
+                } else if (data.exists) {
+                    statusDiv.innerHTML = `
+                        <div class="text-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            ${data.message}
+                            ${data.source === 'Hugging Face' ? `
+                                <div class="small text-muted mt-1">
+                                    Author: ${data.author}<br>
+                                    Model: ${data.name}<br>
+                                    <a href="${data.url}" target="_blank" rel="noopener noreferrer">View on Hugging Face</a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    saveBtn.disabled = false;
+                } else {
+                    statusDiv.innerHTML = `
+                        <div class="text-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            ${data.message}
+                        </div>
+                    `;
+                    saveBtn.disabled = true;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error checking model availability
+                    </div>
+                `;
+                saveBtn.disabled = true;
+            }
+        });
+
+        // Clear status when modal is hidden
+        document.getElementById('addModelModal').addEventListener('hidden.bs.modal', () => {
+            document.getElementById('modelStatus').style.display = 'none';
+            document.getElementById('modelName').value = '';
+            document.getElementById('saveModel').disabled = false;
+        });
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

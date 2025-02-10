@@ -1,0 +1,16 @@
+{
+    "new_chat": "Nueva Conversación",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "security": "Seguridad",
+    "appearance": "Apariencia",
+    "notifications": "Notificaciones",
+    "others": "Otros",
+    "my_ai": "Mi IA",
+    "message_input_placeholder": "Escribe tu mensaje aquí... (Presiona Enter para enviar, Shift+Enter para nueva línea)",
+    "save_changes": "Guardar Cambios",
+    "update_password": "Actualizar Contraseña",
+    "enable_notifications": "Activar Notificaciones",
+    "welcome_message": "Chatea con tu IA local ahora",
+    "back_to_chat": "Volver al Chat"
+}

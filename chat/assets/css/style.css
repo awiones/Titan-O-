@@ -1,0 +1,3405 @@
+:root {
+    --background-color: #ffffff;
+    --text-color: #000000;
+    --input-border: #000000;
+    --input-background: #ffffff;
+    --button-background: #000000;
+    --button-text: #ffffff;
+    --hover-background: #333333;
+    --base-font-size: 16px;
+    --message-font-size: 1rem;
+    --input-font-size: 1rem;
+    --title-font-size: 1.5rem;
+    --button-font-size: 1rem;
+}
+
+body {
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: var(--base-font-size);
+}
+
+.chat-container {
+    height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+.titan-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    font-size: var(--title-font-size);
+}
+
+.settings-btn {
+    margin-top: auto;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    border: 2px solid var(--text-color);
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 4px 4px 0 var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    font-size: var(--button-font-size);
+    text-decoration: none;  /* Add this line to remove underline */
+    flex-grow: 1;           /* Allow settings button to take remaining space */
+}
+
+.settings-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+    color: var(--button-text);  /* Keep text color on hover */
+    text-decoration: none;  /* Keep underline removed on hover */
+}
+
+.sidebar.minimized .titan-title,
+.sidebar.minimized .settings-btn span {
+    display: none;
+}
+
+.sidebar.minimized {
+    width: 70px;
+    min-width: 70px;
+    overflow: hidden;
+}
+
+.sidebar.minimized .user-profile,
+.sidebar.minimized .new-chat-btn,
+.sidebar.minimized .chat-history {
+    display: none;
+}
+
+.sidebar.minimized .sidebar-toggle {
+    width: 100%;
+    text-align: center;
+}
+
+.sidebar.minimized .settings-btn,
+.sidebar.minimized .theme-toggle {
+    display: none !important;
+}
+
+.sidebar.minimized .sidebar-toggle {
+    margin-bottom: 0;
+    padding: 10px 0;
+}
+
+.main-content {
+    flex-grow: 1;
+    background-color: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease, margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--button-font-size);
+}
+
+.sidebar-toggle i {
+    font-size: 1.2rem;
+}
+
+.sidebar.minimized .sidebar-toggle-text {
+    display: none;
+}
+
+.user-profile {
+    background-color: var(--input-background);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    font-weight: 600;
+}
+
+.user-tier {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.upgrade-btn {
+    width: 100%;
+    margin-top: 10px;
+    background-color: transparent;
+    border-color: var(--button-background);
+    color: var (--button-background);
+}
+
+.upgrade-btn:hover {
+    background-color: var(--button-background);
+    color: var (--button-text);
+}
+
+.new-chat-btn {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--input-border);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: var(--button-font-size);
+}
+
+.new-chat-btn:hover {
+    background-color: var(--hover-background);
+}
+
+/* Update Chat History Styles */
+.chat-history {
+    position: relative;
+    overflow-y: auto;
+    padding: 10px 0;
+    margin: 0 -20px;  /* Negative margin to extend full width */
+    padding: 0 20px;  /* Add padding back */
+}
+
+.chat-history-group {
+    margin-bottom: 20px;
+}
+
+.chat-history-group-title {
+    padding: 10px 0;
+    font-size: 0.75rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 8px;
+}
+
+/* Update chat history item layout */
+.chat-history-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    padding: 10px;
+    margin: 4px 0;
+    border-radius: 6px;
+    gap: 8px;
+    position: relative;
+}
+
+.chat-history-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.chat-history-item.active {
+    background-color: var(--button-background);
+    color: var(--button-text) !important;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+/* Make all text elements inside active chat item white */
+.chat-history-item.active .chat-title,
+.chat-history-item.active .chat-title i,
+.chat-history-item.active .chat-meta,
+.chat-history-item.active .chat-timestamp,
+.chat-history-item.active .chat-message-count {
+    color: var(--button-text);
+    opacity: 1;
+}
+
+.chat-history-item.active .delete-chat {
+    color: var(--button-text);
+    opacity: 0;
+}
+
+.chat-history-item.active:hover .delete-chat {
+    opacity: 0.7;
+}
+
+.chat-history-item.active:hover .delete-chat:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--button-text);
+}
+
+.chat-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    min-width: 0; /* Allow title to shrink */
+    padding-right: 8px;
+}
+
+.chat-title i {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.chat-title span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.chat-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-right: 30px; /* Make space for delete button */
+}
+
+.chat-timestamp {
+    margin-left: auto;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.chat-history-item:hover .delete-chat {
+    opacity: 0.5;
+}
+
+.chat-history-item.active .chat-timestamp {
+    color: var(--button-text);
+    opacity: 0.8;
+}
+
+/* Update delete button style */
+.delete-chat {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--text-color);
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.chat-history-item:hover .delete-chat {
+    opacity: 0.5;
+}
+
+.delete-chat:hover {
+    opacity: 1 !important;
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #ff4444;
+}
+
+/* Remove old chat history search styles */
+.chat-history-search,
+.chat-history-empty {
+    display: none;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    position: relative;
+    z-index: 2;  /* Higher than model-selector-container */
+}
+
+/* Update message container styles */
+.message-container {
+    max-width: 800px;
+    width: fit-content;
+    margin: 0; /* Change from 12px 0 to 0 */
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Add small gap between message and actions */
+    position: relative; /* Add this */
+    z-index: 1; /* Lower z-index for container */
+}
+
+.message-container + .message-container {
+    margin-top: 12px; /* Add spacing between messages */
+}
+
+.user-message-container {
+    margin-left: auto;
+}
+
+.ai-message-container {
+    margin-right: auto;
+}
+
+/* Update message styles */
+.message {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    width: fit-content;
+    padding: 14px 18px;
+    border-radius: 8px;
+    line-height: 1.6;
+    font-size: var(--message-font-size);
+    color: var(--text-color);
+    background-color: var(--background-color);
+    border: 2px solid var(--text-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    margin-bottom: 4px; /* Add small gap between message and actions */
+}
+
+/* Update icon positioning styles */
+.message-icon {
+    position: absolute;
+    top: -25px; /* Move it higher */
+    font-size: 1rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    z-index: 4;  /* Higher than message-container */
+    /* Remove background, border, width, height, and other container styles */
+}
+
+/* Add styles for model name display */
+.model-name {
+    position: absolute;
+    top: -25px;
+    left: 35px; /* Position it next to the icon */
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-style: italic;
+    z-index: 4;  /* Same as message-icon */
+}
+
+.message-container:hover .model-name {
+    opacity: 1;
+}
+
+/* Position icons based on message type */
+.user-message-container .message-icon {
+    right: 10px; /* Adjust position */
+}
+
+.ai-message-container .message-icon {
+    left: 10px; /* Adjust position */
+}
+
+/* Add hover effect */
+.message-container:hover .message-icon {
+    opacity: 1;
+}
+
+/* Simplify message actions */
+.message-actions {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    width: fit-content;
+    align-items: center;
+    opacity: 1 !important;
+}
+
+.action-btn {
+    position: relative;
+    z-index: 4;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--text-color);
+    opacity: 0.5;
+    transition: all 0.2s ease, opacity 0.3s ease, cursor 0.3s ease;
+    user-select: none;
+}
+
+.action-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.action-btn[disabled],
+.action-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Align actions with their messages */
+.user-message-container .message,
+.user-message-container .message-actions {
+    margin-left: auto;
+}
+
+.ai-message-container .message,
+.ai-message-container .message-actions {
+    margin-right: auto;
+}
+
+.message-content {
+    display: block; /* Change from flex to block */
+}
+
+.user-message {
+    background-color: var(--input-background);
+    margin-left: auto;
+    border: 1px solid var(--input-border);
+}
+
+.ai-message {
+    background-color: var(--hover-background);
+    margin-right: auto;
+    border: 1px solid var(--input-border);
+}
+
+.message-text {
+    flex-grow: 1;
+    position: relative;
+    transition: opacity 0.3s ease;
+}
+
+.message-text.changing {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+.message-text.changed {
+    opacity: 1;
+    transition: opacity 0.3s ease-in;
+}
+
+@keyframes messageChange {
+    0% {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.input-container {
+    padding: 20px;
+    background-color: var(--background-color);
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: var(--input-background);
+    border-radius: 10px;
+    border: 1px solid var(--input-border);
+    padding-right: 100px; /* Make space for both stop and send buttons */
+}
+
+.message-input {
+    width: 100%;
+    padding: 12px 50px 12px 15px !important;
+    border: none !important;
+    background-color: transparent !important;
+    color: var(--text-color) !important;
+    resize: none;
+    max-height: 200px;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-size: var(--input-font-size);
+}
+
+.message-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.send-button {
+    position: absolute;
+    right: 10px;
+    bottom: 50%;
+    transform: translateY(50%);
+    background: none;
+    border: none;
+    color: var(--text-color);
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+}
+
+.send-button i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+
+.send-button:hover:not(:disabled) i {
+    transform: scale(1.1);
+    color: var(--button-background);
+}
+
+.send-button:active:not(:disabled) i {
+    transform: scale(0.95);
+}
+
+.message-input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.chat-container {
+    background-color: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 10px;
+    width: 100%;
+    height: 95vh;
+    margin: 20px;
+    box-shadow: 8px 8px 0 var(--text-color);
+    display: flex;
+}
+
+.sidebar {
+    border-right: 2px solid var(--text-color);
+    background-color: var(--background-color);
+}
+
+.new-chat-btn {
+    border: 2px solid var(--text-color);
+    background-color: var(--button-background);
+    color: var(--button-text);
+    transition: all 0.3s ease;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+.new-chat-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.chat-history-item {
+    border: 1px solid var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.chat-history-item:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+.chat-history-item.active {
+    background-color: var(--button-background);
+    color: var(--button-text);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+.message {
+    background-color: var(--background-color);
+    border: 2px solid var(--text-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.message:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.input-container {
+    border-top: 2px solid var(--text-color);
+    background-color: var(--background-color);
+    padding: 20px;
+}
+
+.input-group {
+    border: 2px solid var(--text-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.input-group:focus-within {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.message-input {
+    border: none !important;
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+}
+
+.send-button {
+    color: var(--text-color);
+    transition: transform 0.3s ease;
+}
+
+.send-button:hover:not(:disabled) {
+    transform: translateY(50%) scale(1.1);
+}
+
+.sidebar-toggle {
+    border: 2px solid var(--text-color);
+    background-color: var(--button-background);
+    color: var (--button-text);
+    margin: 10px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+.sidebar-toggle:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+body {
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Update message colors */
+.user-message, .ai-message {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.message-icon {
+    color: var(--text-color);
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: var(--text-color);
+    border-radius: 50%;
+    animation: bounce 1.5s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-4px);
+    }
+}
+
+.message.error {
+    background-color: #fff2f2;
+    border-color: #ff4444;
+}
+
+.model-selector-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--text-color);
+    position: relative;
+    z-index: 1;
+    background-color: var(--background-color); /* Add this to prevent transparency */
+}
+
+.model-selector {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: block;
+    padding: 10px;
+    border: 2px solid var(--text-color);
+    border-radius: 5px;
+    background-color: var(--background-color);
+    color: var (--text-color);
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    padding: 12px 15px;
+    transition: all 0.3s ease, background-color 0.2s ease;
+}
+
+/* Custom Dropdown Arrow */
+.model-selector::after {
+    content: '\f107';  /* FontAwesome chevron-down */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    pointer-events: none;
+}
+
+.model-selector:focus::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Styled Options */
+.model-selector option {
+    padding: 12px;
+    font-size: var(--input-font-size);
+    background-color: var(--background-color);
+    color: var(--text-color); /* Keep text color black */
+    border-bottom: 1px solid var(--text-color);
+}
+
+/* Loading State */
+.model-selector.loading {
+    background-image: linear-gradient(
+        90deg,
+        var(--background-color) 0%,
+        var(--background-color) 35%,
+        rgba(0, 0, 0, 0.05) 50%,
+        var(--background-color) 65%,
+        var(--background-color) 100%
+    );
+    background-size: 200% 100%;
+    animation: loadingShimmer 1.5s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes loadingShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Change State Animation */
+.model-selector.changing {
+    animation: modelChange 0.3s ease;
+}
+
+@keyframes modelChange {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
+}
+
+/* Enhanced Hover State */
+.model-selector:hover:not(.loading) {
+    background-color: var(--background-color);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+/* Option Hover Effect */
+.model-selector option:hover {
+    background-color: var(--button-background);
+    color: var(--button-text);
+}
+
+/* Selected Option */
+.model-selector option:checked {
+    background: linear-gradient(0deg, var(--button-background) 0%, var (--button-background) 100%);
+    color: var(--button-text); /* Change text color for selected option */
+}
+
+/* Focus State */
+.model-selector:focus {
+    outline: none;
+    border-color: var(--text-color);
+    background-color: var(--background-color);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+/* Dropdown List Animation */
+.model-selector[size] {
+    animation: dropdownOpen 0.2s ease;
+    transform-origin: top;
+}
+
+@keyframes dropdownOpen {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .model-selector option {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .model-selector option:hover {
+    background-color: var(--button-background);
+    color: var(--button-text);
+}
+
+.add-model-btn {
+    padding: 10px;
+    border: 2px solid var(--text-color);
+    border-radius: 5px;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.add-model-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.modal-content {
+    border: 2px solid var(--text-color);
+    box-shadow: 8px 8px 0 var(--text-color);
+}
+
+.modal-header, .modal-footer {
+    border-color: var(--text-color);
+}
+
+.modal .btn {
+    border: 2px solid var(--text-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.modal .btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.chat-history-item {
+    position: relative;
+}
+
+.delete-chat {
+    position: absolute;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.chat-history-item:hover .delete-chat {
+    opacity: 1;
+}
+
+.message.editing .message-text {
+    position: relative;
+}
+
+.message.editing textarea {
+    width: 600px !important;  /* Force the width */
+    min-height: 150px;
+    padding: 16px;
+    border: 2px solid var (--text-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    margin: 15px 0;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    display: block;  /* Add this */
+    box-sizing: border-box;  /* Add this */
+}
+
+.edit-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.message {
+    flex-direction: column;
+}
+
+.message-content {
+    display: block; /* Change from flex to block */
+}
+
+.regenerate-btn {
+    color: black;
+}
+
+.remove-btn {
+    color: black;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.message.editing textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 8px;
+    border: 2px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    resize: vertical;
+    margin-bottom: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+.save-edit, .cancel-edit {
+    color: var(--text-color);
+}
+
+.save-edit:hover, .cancel-edit:hover {
+    transform: scale(1.1);
+}
+
+.message.editing .message-text {
+    width: 100%;
+    max-width: 800px;
+}
+
+.message.editing {
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Update message editing styles */
+.message.editing {
+    width: auto;
+    max-width: 600px;
+    transition: all 0.3s ease;
+}
+
+.message.editing .message-text {
+    width: 100%;
+}
+
+.message.editing textarea {
+    width: 100% !important; /* Override any inline styles */
+    max-width: 600px !important; /* Change from 800px to 600px */
+    min-height: 150px;
+    padding: 16px;
+    border: 2px solid var (--text-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    margin: 15px 0;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    display: block;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* Maintain alignment for user and AI messages */
+.user-message.editing {
+    margin-left: auto;
+    margin-right: 0;
+    width: auto;
+}
+
+.ai-message.editing {
+    margin-left: 0;
+    margin-right: auto;
+    width: auto;
+}
+
+/* Remove fixed width styles that might interfere */
+.message.editing {
+    width: auto !important;
+    max-width: 600px !important; /* Change from 800px to 600px */
+}
+
+.message.editing textarea {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.message-text code {
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.message-text pre {
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.message-text pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.message-text blockquote {
+    border-left: 4px solid var(--text-color);
+    margin: 10px 0;
+    padding: 10px 20px;
+    background-color: rgba(0,0,0,0.05);
+}
+
+.message-text h1,
+.message-text h2,
+.message-text h3 {
+    margin: 15px 0 10px 0;
+    line-height: 1.2;
+}
+
+.message-text ul,
+.message-text ol {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.message-text li {
+    margin: 5px 0;
+}
+
+.progress {
+    height: 20px;
+    border: 2px solid var(--text-color);
+    border-radius: 5px;
+    background-color: var(--background-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+.progress-bar {
+    background-color: var(--button-background);
+    transition: width 0.3s ease;
+}
+
+.message.editing textarea {
+    min-width: 400px !important;
+    max-width: 700px !important;
+    width: auto !important;
+    min-height: 100px;
+    padding: 10px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    margin: 15px 0;
+    box-shadow: 4px 4px 0 var (--text-color);
+    transition: all 0.3s ease;
+    display: block;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.message.editing {
+    width: auto !important;
+    max-width: 700px !important;
+}
+
+.editing-textarea {
+    width: 100% !important;
+    max-width: 600px !important;
+    min-width: 400px !important;
+    min-height: 100px;
+    padding: 10px;
+    border: 2px solid var (--text-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    margin: 15px 0;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    display: block;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* Add styles for version navigation */
+.version-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 12px;
+    position: relative;
+    z-index: 3; /* Match action buttons z-index */
+}
+
+.version-nav button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.version-nav button:hover:not(:disabled) {
+    background-color: var(--hover-color);
+}
+
+.version-nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.version-nav .version-info {
+    font-size: 0.9em;
+    color: var(--text-color-secondary);
+}
+
+/* Add styles for version navigation */
+.version-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 12px;
+    position: relative;
+    z-index: 3; /* Match action buttons z-index */
+}
+
+.version-nav button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.version-nav button:hover:not(:disabled) {
+    background-color: var(--hover-color);
+}
+
+.version-nav button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.version-nav .version-info {
+    font-size: 0.9em;
+    color: var(--text-color-secondary);
+}
+
+/* Add these styles at the end of the file */
+.waiting-indicator {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 20px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    max-width: 200px;
+    margin: 25px 0 10px 0; /* Increased top margin to accommodate the icon and model name */
+}
+
+/* Add animation for the "AI is thinking" text */
+.waiting-indicator span {
+    animation: thinking 1s infinite;
+    display: inline-block;
+}
+
+@keyframes thinking {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.waiting-indicator .message-icon {
+    top: -22px; /* Adjust this value as needed */
+    left: 10px;
+}
+
+.waiting-indicator .model-name {
+    top: -22px; /* Match the icon position */
+    left: 35px;
+}
+
+.waiting-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.waiting-dots span {
+    width: 8px;
+    height: 8px;
+    background-color: var(--text-color);
+    border-radius: 50%;
+    animation: waitingDot 1.4s infinite ease-in-out;
+}
+
+.waiting-dots span:nth-child(1) { animation-delay: 0s; }
+.waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+.waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes waitingDot {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Add styles for waiting container */
+.waiting-container {
+    position: relative;
+    margin: 0;
+    max-width: 200px;
+    margin-right: auto; /* Align to the left like AI messages */
+    margin-top: 25px; /* Add spacing from previous message */
+}
+
+.waiting-indicator {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 20px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    max-width: 200px;
+}
+
+.waiting-indicator .message-icon,
+.waiting-indicator .model-name {
+    position: absolute;
+    top: -25px;
+}
+
+.waiting-indicator .message-icon {
+    left: 0;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.waiting-indicator .model-name {
+    left: 25px;
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.waiting-container {
+    position: relative;
+    margin: 0;
+    max-width: 200px;
+    margin-right: auto;
+    margin-top: 25px; /* Add spacing from previous message */
+}
+
+.waiting-indicator {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 20px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    max-width: 200px;
+}
+
+.waiting-indicator .message-icon,
+.waiting-indicator .model-name {
+    position: absolute;
+    top: -25px;
+}
+
+.waiting-indicator .message-icon {
+    left: 0;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.waiting-indicator .model-name {
+    left: 25px;
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.thinking-text {
+    color: var(--text-color);
+    animation: thinkingFade 1.5s ease-in-out infinite;
+}
+
+@keyframes thinkingFade {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.waiting-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.thinking-text {
+    animation: thinking 1s infinite;
+    color: var(--text-color);
+}
+
+/* Add new styles for bottom actions */
+.sidebar-bottom-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.theme-toggle {
+    width: 45px !important;  /* Fixed width for the square button */
+    height: 45px !important;  /* Match the width for a perfect square */
+    padding: 0 !important;   /* Remove padding */
+    flex-shrink: 0;         /* Prevent shrinking */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle span {
+    display: none !important;  /* Hide the text */
+}
+
+.titan-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.sidebar-toggle {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    box-shadow: none;
+}
+
+.sidebar-toggle:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.sidebar-toggle i {
+    transition: transform 0.3s ease;
+}
+
+.sidebar.minimized .sidebar-toggle i {
+    transform: rotate(180deg);
+}
+
+.sidebar-toggle-text {
+    display: none;
+}
+
+/* Remove user icon styles */
+.user-message-container .message-icon {
+    display: none;
+}
+
+/* Update waiting container styles */
+.waiting-container {
+    position: relative;
+    margin: 0;
+    max-width: 200px;
+    margin-right: auto;
+    margin-top: 12px; /* Reduced from 25px */
+    margin-bottom: 12px;
+}
+
+.waiting-indicator {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+/* Position icon and model name above the container */
+.waiting-container::before {
+    content: "";
+    display: block;
+    height: 25px; /* Space for icon and model name */
+}
+
+.waiting-container .message-icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.waiting-container .model-name {
+    position: absolute;
+    top: 0;
+    left: 25px;
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+/* Remove duplicate styles */
+.waiting-dots {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.thinking-text {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+/* Remove any duplicated animations */
+@keyframes thinkingFade {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* New version navigation styles */
+.version-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--background-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-right: 8px;
+    font-size: 0.8rem;
+}
+
+.version-control button {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.version-control button:hover:not(:disabled) {
+    opacity: 1;
+}
+
+.version-control button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.version-control .version-info {
+    padding: 0 4px;
+    min-width: 40px;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.version-control .version-count {
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+/* Delete Chat Modal Styles */
+#deleteChatModal .modal-content {
+    border: 2px solid var(--text-color);
+    box-shadow: 8px 8px 0 var(--text-color);
+    background-color: var(--background-color);
+}
+
+#deleteChatModal .modal-header {
+    border-bottom: 2px solid var(--text-color);
+    background-color: var(--background-color);
+}
+
+#deleteChatModal .modal-footer {
+    border-top: 2px solid var(--text-color);
+    background-color: var(--background-color);
+}
+
+#deleteChatModal .btn {
+    border: 2px solid var(--text-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+}
+
+#deleteChatModal .btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#deleteChatModal .btn-secondary {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+#deleteChatModal .btn-danger {
+    background-color: #ff4444;
+    color: white;
+    border-color: #cc0000;
+}
+
+#deleteChatModal .btn-danger:hover {
+    background-color: #cc0000;
+}
+
+#deleteChatModal .modal-body {
+    padding: 20px;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+/* Code block styles */
+pre {
+    position: relative;
+    margin: 1em 0;
+    border-radius: 6px;
+    background: #282c34 !important;
+    padding: 1em !important;
+}
+
+code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9em;
+}
+
+.copy-code-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: #d4d4d4;
+    background-color: #3a3f4b;
+    border: 1px solid #4a4f5c;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+pre:hover .copy-code-btn {
+    opacity: 1;
+}
+
+.copy-code-btn:hover {
+    background-color: #4a4f5c;
+}
+
+/* Rainbow syntax highlighting overrides */
+.token.keyword { color: #c678dd; }
+.token.string { color: #98c379; }
+.token.function { color: #61afef; }
+.token.number { color: #d19a66; }
+.token.operator { color: #56b6c2; }
+.token.class-name { color: #e5c07b; }
+.token.comment { color: #7f848e; }
+.token.property { color: #e06c75; }
+.token.punctuation { color: #abb2bf; }
+
+/* Inline code style */
+:not(pre) > code {
+    background: #f5f5f5;
+    color: #e06c75;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Dark theme support */
+[data-theme="dark"] :not(pre) > code {
+    background: #2c313a;
+    color: #e06c75;
+}
+
+[data-theme="dark"] .copy-code-btn {
+    background-color: #2c313a;
+    border-color: #4a4f5c;
+    color: #abb2bf;
+}
+
+[data-theme="dark"] .copy-code-btn:hover {
+    background-color: #3a3f4b;
+}
+
+/* Updated Rainbow syntax highlighting */
+.token.keyword { color: #ff79c6; }
+.token.string { color: #50fa7b; }
+.token.function { color: #8be9fd; }
+.token.number { color: #bd93f9; }
+.token.operator { color: #ff79c6; }
+.token.class-name { color: #8be9fd; }
+.token.comment { color: #6272a4; }
+.token.property { color: #50fa7b; }
+.token.punctuation { color: #f8f8f2; }
+.token.boolean { color: #bd93f9; }
+.token.constant { color: #bd93f9; }
+.token.selector { color: #50fa7b; }
+.token.tag { color: #ff79c6; }
+.token.char { color: #50fa7b; }
+.token.builtin { color: #8be9fd; }
+.token.regex { color: #f1fa8c; }
+.token.variable { color: #f8f8f2; }
+
+/* Code block container */
+pre {
+    background: #282a36 !important;
+    border-radius: 8px !important;
+    margin: 1.5em 0 !important;
+    padding: 1em !important;
+    overflow-x: auto;
+    position: relative;
+    border: 1px solid #44475a;
+}
+
+/* Code text */
+code {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: #f8f8f2;
+}
+
+/* Markdown copy button */
+.markdown-copy-btn {
+    position: relative;
+    top: 0;
+    right: 0;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    box-shadow: 2px 2px 0 var(--text-color);
+}
+
+.markdown-copy-btn:hover {
+    opacity: 1;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--text-color);
+}
+
+/* Code block copy button */
+.copy-code-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #f8f8f2;
+    background-color: #44475a;
+    border: 1px solid #6272a4;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+pre:hover .copy-code-btn {
+    opacity: 1;
+}
+
+.copy-code-btn:hover {
+    background-color: #6272a4;
+    transform: scale(1.05);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .markdown-copy-btn {
+    background-color: #282a36;
+    color: #f8f8f2;
+    border-color: #6272a4;
+}
+
+[data-theme="dark"] .markdown-copy-btn:hover {
+    background-color: #44475a;
+}
+
+[data-theme="dark"] code {
+    color: #f8f8f2;
+}
+
+[data-theme="dark"] :not(pre) > code {
+    background: #44475a;
+    color: #f8f8f2;
+}
+
+/* Simplify code block styles */
+pre {
+    background: #282a36 !important;
+    border-radius: 8px !important;
+    margin: 1.5em 0 !important;
+    padding: 1em !important;
+    overflow-x: auto;
+    position: relative;
+    border: 1px solid #44475a;
+}
+
+/* Code text - simplified to white */
+code {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: #f8f8f2;
+}
+
+/* Override all Prism.js token colors to white */
+pre code * {
+    color: #f8f8f2 !important;
+}
+
+/* Remove rainbow syntax colors */
+.token.keyword,
+.token.string,
+.token.function,
+.token.number,
+.token.operator,
+.token.class-name,
+.token.comment,
+.token.property,
+.token.punctuation,
+.token.boolean,
+.token.constant,
+.token.selector,
+.token.tag,
+.token.char,
+.token.builtin,
+.token.regex,
+.token.variable {
+    color: #f8f8f2 !important;
+}
+
+/* Code block styles - pure white */
+pre, code {
+    background: #282a36 !important;
+    color: #f8f8f2 !important;
+}
+
+code {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9em;
+}
+
+/* Remove all syntax highlighting */
+.token,
+.token.tag,
+.token.keyword,
+.token.string,
+.token.function,
+.token.number,
+.token.operator,
+.token.class-name,
+.token.comment,
+.token.property,
+.token.punctuation,
+.token.boolean,
+.token.constant,
+.token.selector,
+.token.char,
+.token.builtin,
+.token.regex,
+.token.variable,
+.token *,
+pre *,
+code * {
+    color: #f8f8f2 !important;
+    background: transparent !important;
+    text-shadow: none !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    text-decoration: none !important;
+}
+
+/* Keep copy button styling */
+.copy-code-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #f8f8f2;
+    background-color: #44475a !important;
+    border: 1px solid #6272a4;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+/* Code block wrapper and copy button */
+.code-block-wrapper {
+    position: relative;
+}
+
+.copy-code-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    background-color: #44475a;
+    border: 1px solid #6272a4;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f8f8f2;
+}
+
+.code-block-wrapper:hover .copy-code-btn {
+    opacity: 1;
+}
+
+.copy-code-btn:hover {
+    background-color: #6272a4;
+    transform: scale(1.05);
+}
+
+.copy-code-btn i {
+    font-size: 14px;
+}
+
+/* Remove any old copy button styles */
+.markdown-copy-btn {
+    display: none;
+}
+
+/* Code block wrapper and copy button */
+.code-block-wrapper {
+    position: relative;
+}
+
+.copy-code-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #f8f8f2;
+    background-color: #44475a;
+    border: 1px solid #6272a4;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 2;
+}
+
+.code-block-wrapper:hover .copy-code-btn {
+    opacity: 1;
+}
+
+.copy-code-btn:hover {
+    background-color: #6272a4;
+    transform: scale(1.05);
+}
+
+/* Remove old markdown copy button styles */
+.markdown-copy-btn {
+    display: none;
+}
+
+/* Version Navigation - New Styles */
+.version-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    margin-right: 12px;
+    border: 2px solid var(--text-color);
+    border-radius: 6px;
+    background: var(--background-color);
+    box-shadow: 2px 2px 0 var(--text-color);
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 3;
+}
+
+.version-nav:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--text-color);
+}
+
+.version-nav button {
+    background: none;
+    border: none;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-color);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.version-nav button:not(:disabled):hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
+}
+
+.version-nav button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.version-nav .version-info {
+    min-width: 40px;
+    text-align: center;
+    font-size: 0.85em;
+    padding: 0 4px;
+    font-weight: 500;
+    border-left: 1px solid var(--text-color);
+    border-right: 1px solid var(--text-color);
+}
+
+/* Version change animation */
+@keyframes versionChange {
+    0% { opacity: 1; transform: translateY(0); }
+    50% { opacity: 0; transform: translateY(-10px); }
+    51% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.version-changing .message-text {
+    animation: versionChange 0.3s ease;
+}
+
+/* Remove old version navigation styles */
+.version-control {
+    display: none;
+}
+
+/* Stop Button Styles */
+.stop-button {
+    position: absolute;
+    right: 10px; /* Position it to the left of the send button */
+    bottom: 50%;
+    transform: translateY(50%);
+    background: none;
+    border: none;
+    color: var(--text-color);
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.stop-button.visible {
+    opacity: 1;
+    animation: stopButtonEnter 0.3s ease forwards;
+}
+
+.stop-button i {
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.stop-button:hover {
+    transform: translateY(50%) scale(1.1);
+}
+
+.stop-button:hover i {
+    color: #ff4444;
+    animation: stopPulse 1s infinite;
+}
+
+.stop-button:active {
+    transform: translateY(50%) scale(0.95);
+}
+
+@keyframes stopButtonEnter {
+    from {
+        opacity: 0;
+        transform: translateY(50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(50%) scale(1);
+    }
+}
+
+@keyframes stopPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+        color: #ff0000;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.select-group {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+.refresh-models-btn {
+    width: 45px;
+    height: 45px;
+    padding: 0;
+    border: 2px solid var(--text-color);
+    border-radius: 5px;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refresh-models-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.refresh-models-btn i {
+    font-size: 1.2rem;
+    transition: transform 0.5s ease;
+}
+
+.refresh-models-btn i.rotating {
+    transform: rotate(360deg);
+}
+
+/* Model Switch Notification */
+.model-switch-notification {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    background-color: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transform: translateY(150%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 9999;
+    min-width: 300px;
+}
+
+.model-switch-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.model-switch-notification i {
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+.notification-content {
+    flex-grow: 1;
+}
+
+.notification-title {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.notification-text {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.model-switch-notification:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+/* Model Selector Styles */
+.model-selector {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    font-size: var(--input-font-size);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+}
+
+.model-selector:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.model-selector:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+/* Style the select options */
+.model-selector option {
+    padding: 12px;
+    font-size: var(--input-font-size);
+    background-color: var(--background-color);
+    color: var(--text-color); /* Keep text color black */
+    border-bottom: 1px solid var(--text-color);
+}
+
+/* Selected Option */
+.model-selector option:checked {
+    background: linear-gradient(0deg, var(--button-background) 0%, var(--button-background) 100%);
+    color: var(--button-text); /* Change text color for selected option */
+}
+
+/* Style the select when opened */
+.model-selector::-ms-expand {
+    display: none;
+}
+
+/* Loading state */
+.model-selector.loading {
+    opacity: 0.7;
+    cursor: wait;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='2' x2='12' y2='6'%3E%3C/line%3E%3Cline x1='12' y1='18' x2='12' y2='22'%3E%3C/line%3E%3Cline x1='4.93' y1='4.93' x2='7.76' y2='7.76'%3E%3C/line%3E%3Cline x1='16.24' y1='16.24' x2='19.07' y2='19.07'%3E%3C/line%3E%3Cline x1='2' y1='12' x2='6' y2='12'%3E%3C/line%3E%3Cline x1='18' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cline x1='4.93' y1='19.07' x2='7.76' y2='16.24'%3E%3C/line%3E%3Cline x1='16.24' y1='7.76' x2='19.07' y2='4.93'%3E%3C/line%3E%3C/svg%3E");
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .model-selector {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .model-selector.loading {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='2' x2='12' y2='6'%3E%3C/line%3E%3Cline x1='12' y1='18' x2='12' y2='22'%3E%3C/line%3E%3Cline x1='4.93' y1='4.93' x2='7.76' y2='7.76'%3E%3C/line%3E%3Cline x1='16.24' y1='16.24' x2='19.07' y2='19.07'%3E%3C/line%3E%3Cline x1='2' y1='12' x2='6' y2='12'%3E%3C/line%3E%3Cline x1='18' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cline x1='4.93' y1='19.07' x2='7.76' y2='16.24'%3E%3C/line%3E%3Cline x1='16.24' y1='7.76' x2='19.07' y2='4.93'%3E%3C/line%3E%3C/svg%3E");
+}
+
+/* Model selector container improvements */
+.model-selector-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--text-color);
+    background-color: var(--background-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.select-group {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    align-items: center;
+}
+
+/* Add Model Button Style */
+.add-model-btn {
+    padding: 12px 20px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    font-size: var(--input-font-size);
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.add-model-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+.add-model-btn i {
+    font-size: 0.9em;
+}
+
+/* Add new styles for select wrapper and arrow */
+.select-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-color);
+    transition: transform 0.3s ease;
+}
+
+.select-wrapper .model-selector {
+    width: 100%;
+    padding-right: 40px;
+    background-image: none;
+}
+
+.select-wrapper:hover .select-arrow {
+    transform: translateY(-50%) scale(1.1);
+}
+
+.model-selector:focus + .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Override default select highlighting */
+.model-selector::-moz-selection {
+    color: var(--text-color);
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.model-selector::selection {
+    color: var(--text-color);
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Prevent white text on drag */
+.model-selector option:hover,
+.model-selector option:focus,
+.model-selector option:active,
+.model-selector option:checked,
+.model-selector option:selected {
+    color: var(--text-color) !important;
+    background-color: var(--background-color) !important;
+}
+
+/* Fix option selection highlight */
+.model-selector option:hover,
+.model-selector option:focus {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Add Model Modal Styles */
+#modelStatus {
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+#modelStatus .text-success {
+    color: #28a745;
+}
+
+#modelStatus .text-danger {
+    color: #dc3545;
+}
+
+#modelStatus .text-info {
+    color: #17a2b8;
+}
+
+#modelStatus i {
+    font-size: 1.1em;
+    margin-right: 8px;
+}
+
+.input-group .btn-secondary {
+    border: 2px solid var(--text-color);
+    box-shadow: 2px 2px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.input-group .btn-secondary:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--text-color);
+}
+
+#modelName {
+    border: 2px solid var(--text-color);
+    box-shadow: 2px 2px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+#modelName:focus {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--text-color);
+}
+
+/* Model Status Improvements */
+#modelStatus .small {
+    font-size: 0.85em;
+    line-height: 1.4;
+    margin-top: 8px;
+}
+
+#modelStatus a {
+    color: var(--text-color);
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+#modelStatus a:hover {
+    opacity: 1;
+}
+
+#modelStatus .small {
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.text-muted {
+    color: var(--text-color) !important;
+    opacity: 0.7;
+}
+
+/* Add Model Modal Improvements */
+#addModelModal .modal-content {
+    border: 2px solid var(--text-color);
+    border-radius: 12px;
+    box-shadow: 8px 8px 0 var(--text-color);
+    background-color: var(--background-color);
+}
+
+#addModelModal .modal-header {
+    border-bottom: 2px solid var(--text-color);
+    padding: 1.5rem;
+}
+
+#addModelModal .modal-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+#addModelModal .modal-body {
+    padding: 1.5rem;
+}
+
+#addModelModal .form-label {
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+#addModelModal .input-group {
+    margin-top: 0.5rem;
+    border: none;
+    box-shadow: none;
+}
+
+/* Input Group Container */
+#addModelModal .input-group {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    gap: 0;
+    border: none;
+    box-shadow: none;
+    margin-top: 1rem;
+}
+
+/* Model Name Input */
+#addModelModal #modelName {
+    flex: 1;
+    height: 48px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+#addModelModal #modelName:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+}
+
+#addModelModal #checkModel {
+    border: 2px solid var(--text-color);
+    border-left: 1px solid var(--text-color);
+    border-radius: 0 8px 8px 0;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    padding: 0 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#addModelModal #checkModel:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+#addModelModal #checkModel i {
+    margin-right: 8px;
+}
+
+/* Check Button */
+#addModelModal #checkModel {
+    height: 48px;
+    padding: 0 20px;
+    border: 2px solid var(--text-color);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    font-weight: 500;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 120px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#addModelModal #checkModel:hover {
+    background-color: var(--hover-background);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+/* Loading State */
+#addModelModal #checkModel.loading {
+    position: relative;
+    color: transparent;
+}
+
+#addModelModal #checkModel.loading::before {
+    content: "Checking";
+    position: absolute;
+    color: var(--button-text);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#addModelModal #checkModel.loading::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--button-text);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Status Box */
+#modelStatus {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid transparent;
+}
+
+#modelStatus.text-success {
+    background-color: rgba(40, 167, 69, 0.05);
+    border-color: #28a745;
+}
+
+#modelStatus.text-danger {
+    background-color: rgba(220, 53, 69, 0.05);
+    border-color: #dc3545;
+}
+
+#modelStatus.text-info {
+    background-color: rgba(23, 162, 184, 0.05);
+    border-color: #17a2b8;
+}
+
+/* Download Progress */
+#downloadProgress {
+    margin-top: 1.5rem;
+}
+
+/* Progress Bar Improvements */
+#downloadProgress {
+    margin-top: 1.5rem;
+}
+
+#downloadProgress .progress {
+    height: 25px;
+    border: 2px solid var(--text-color);
+    background-color: var(--background-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+#downloadProgress .progress-bar {
+    background-color: var(--button-background);
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+#downloadProgress .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 25%,
+        rgba(255, 255, 255, 0.1) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 50%,
+        transparent 75%,
+        rgba(255, 255, 255, 0.1) 75%
+    );
+    background-size: 20px 20px;
+    animation: progressStripes 1s linear infinite;
+}
+
+@keyframes progressStripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 0; }
+}
+
+#progressText {
+    margin-top: 0.5rem;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Modal Footer Improvements */
+#addModelModal .modal-footer {
+    border-top: 2px solid var(--text-color);
+    padding: 1.5rem;
+    gap: 1rem;
+}
+
+#addModelModal .btn {
+    padding: 10px 20px;
+    font-weight: 500;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#addModelModal .btn-secondary {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+#addModelModal .btn-primary {
+    background-color: var(--button-background);
+    color: var(--button-text);
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+#addModelModal .btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#addModelModal .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Loading spinner for check button */
+#checkModel.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+#checkModel.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.2em;
+    height: 1.2em;
+    border: 2px solid var(--button-text);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Source badge in status message */
+.source-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 500;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    margin-left: 8px;
+}
+
+/* Add Model Modal Input and Button Improvements */
+#addModelModal .input-group {
+    position: relative;
+    display: flex;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    margin-top: 0.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#addModelModal .input-group:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#addModelModal #modelName {
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    padding: 12px 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    box-shadow: none;
+}
+
+#addModelModal #modelName:focus {
+    outline: none;
+    box-shadow: none;
+    transform: none;
+}
+
+#addModelModal #checkModel {
+    min-width: 100px;
+    border: none;
+    border-left: 2px solid var(--text-color);
+    border-radius: 0;
+    background-color: var(--button-background);
+    color: var(--button-text);
+    padding: 12px 20px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+}
+
+#addModelModal #checkModel:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: var(--hover-background);
+}
+
+#addModelModal #checkModel i {
+    font-size: 1rem;
+}
+
+#addModelModal #checkModel::before {
+    content: "Check";
+    font-weight: 500;
+}
+
+/* Loading state for check button */
+#addModelModal #checkModel.loading {
+    position: relative;
+    background-color: var(--button-background);
+}
+
+#addModelModal #checkModel.loading::before {
+    content: "Checking";
+}
+
+#addModelModal #checkModel.loading::after {
+    content: '';
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    border: 2px solid var(--button-text);
+    border-right-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Add Model Modal - New Styles */
+#addModelModal .modal-content {
+    background: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 12px;
+    box-shadow: 8px 8px 0 var(--text-color);
+}
+
+#addModelModal .modal-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--text-color);
+}
+
+#addModelModal .modal-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+#addModelModal .modal-body {
+    padding: 1.5rem;
+}
+
+/* Model Input Group */
+#addModelModal .model-input-group {
+    position: relative;
+    margin-top: 1rem;
+}
+
+#addModelModal .model-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+#addModelModal .model-input-container {
+    display: flex;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#addModelModal .model-input-container:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#addModelModal #modelName {
+    flex: 1;
+    height: 48px;
+    padding: 0 15px;
+    border: none;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+#addModelModal #modelName:focus {
+    outline: none;
+}
+
+#addModelModal #checkModel {
+    width: 120px;
+    border: none;
+    border-left: 2px solid var (--text-color);
+    background: var(--button-background);
+    color: var(--button-text);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#addModelModal #checkModel:hover {
+    background: var(--hover-background);
+}
+
+/* Status Display */
+#modelStatus {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    font-size: 0.95rem;
+    display: none;
+}
+
+#modelStatus.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+#modelStatus.text-success {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: #28a745;
+}
+
+#modelStatus.text-danger {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+#modelStatus.text-info {
+    background: rgba(23, 162, 184, 0.1);
+    border-color: #17a2b8;
+}
+
+/* Progress Bar */
+#downloadProgress {
+    margin-top: 1.5rem;
+    display: none;
+}
+
+#downloadProgress.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+#downloadProgress .progress {
+    height: 24px;
+    background: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+#downloadProgress .progress-bar {
+    background: var(--button-background);
+    transition: width 0.3s ease;
+}
+
+#progressText {
+    margin-top: 0.75rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+/* Modal Footer */
+#addModelModal .modal-footer {
+    padding: 1.5rem;
+    border-top: 2px solid var(--text-color);
+    gap: 1rem;
+}
+
+#addModelModal .btn {
+    padding: 10px 20px;
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+#addModelModal .btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#addModelModal .btn-secondary {
+    background: var(--background-color);
+    color: var(--text-color);
+}
+
+#addModelModal .btn-primary {
+    background: var(--button-background);
+    color: var(--button-text);
+}
+
+/* Loading States */
+#checkModel.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+#checkModel.loading::before {
+    content: "Checking...";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--button-text);
+}
+
+#checkModel.loading::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--button-text);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add Model Modal - Updated Check Button */
+#addModelModal .input-group {
+    display: flex;
+    gap: 0;
+    margin-top: 1rem;
+    background: none;
+    box-shadow: none;
+    border: none;
+}
+
+#addModelModal #modelName {
+    flex: 1;
+    height: 48px;
+    padding: 0 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+#addModelModal #modelName:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#addModelModal #checkModel {
+    width: 120px;
+    height: 48px;
+    margin-left: 10px;
+    padding: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--button-text);
+    background: var(--button-background);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+#addModelModal #checkModel:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+    background: var(--hover-background);
+}
+
+#addModelModal #checkModel i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+/* Loading State */
+#addModelModal #checkModel.loading {
+    position: relative;
+    color: transparent;
+}
+
+#addModelModal #checkModel.loading::before {
+    content: "Checking";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--button-text);
+}
+
+#addModelModal #checkModel.loading::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--button-text);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+#addModelModal #checkModel.loading:hover {
+    transform: none;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+/* Add Model Modal - Updated Input and Button Styles */
+#addModelModal .input-container {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    margin-top: 0.5rem;
+}
+
+#addModelModal #modelName {
+    flex: 1;
+    height: 48px;
+    padding: 0 15px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background: var(--background-color);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    transition: all 0.3s ease;
+}
+
+#addModelModal #modelName:focus {
+    outline: none;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+}
+
+#addModelModal .check-btn {
+    width: 120px;
+    height: 48px;
+    padding: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--button-text);
+    background: var(--button-background);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+#addModelModal .check-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+    background: var(--hover-background);
+}
+
+#addModelModal .check-btn i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+#addModelModal .check-btn.loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+#addModelModal .check-btn.loading::before {
+    content: "Checking";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--button-text);
+}
+
+#addModelModal .check-btn.loading::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--button-text);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+#addModelModal .check-btn.loading:hover {
+    transform: none;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+/* Add Model Modal - Updated Check Button */
+#addModelModal .check-btn {
+    width: 120px;
+    height: 48px;
+    padding: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--button-text);
+    background: var(--button-background);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 var (--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+#addModelModal .check-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--text-color);
+    background: var(--hover-background);
+}
+
+/* Remove the ::before content that was adding extra "Check" text */
+#addModelModal #checkModel::before {
+    content: none;
+}
+
+#addModelModal .check-btn.loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+#addModelModal .check-btn.loading::before {
+    content: "Checking";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--button-text);
+}
+
+#addModelModal .check-btn.loading::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--button-text);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+#addModelModal .check-btn.loading:hover {
+    transform: none;
+    box-shadow: 4px 4px 0 var(--text-color);
+}
+
+/* Cancel Download Button */
+#cancelDownload {
+    border: 2px solid var(--text-color);
+    background-color: #ff4444;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    box-shadow: 3px 3px 0 var(--text-color);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: none;
+}
+
+#cancelDownload:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--text-color);
+    background-color: #ff0000;
+}
+
+#cancelDownload i {
+    margin-right: 4px;
+}
+
+#cancelDownload:active {
+    transform: translate(0, 0);
+    box-shadow: 1px 1px 0 var(--text-color);
+}
+

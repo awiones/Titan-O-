@@ -45,63 +45,97 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updates = [];
         $params = [];
+        $error = null;
 
-        // Update profile information
-        if (isset($_POST['username'])) {
-            $updates[] = "username = ?";
-            $params[] = $_POST['username'];
-        }
-        if (isset($_POST['email'])) {
-            $updates[] = "email = ?";
-            $params[] = $_POST['email'];
-        }
-        if (isset($_POST['first_name'])) {
-            $updates[] = "first_name = ?";
-            $params[] = $_POST['first_name'];
-        }
-        if (isset($_POST['last_name'])) {
-            $updates[] = "last_name = ?";
-            $params[] = $_POST['last_name'];
-        }
-        
-        // Handle theme and appearance settings
-        if (isset($_POST['theme'])) {
-            $updates[] = "theme = ?";
-            $params[] = $_POST['theme'];
-        }
-        if (isset($_POST['font_size'])) {
-            $updates[] = "font_size = ?";
-            $params[] = $_POST['font_size'];
-        }
-
-        // Add user ID to params array
-        $params[] = $_SESSION['user_id'];
-
-        // Construct and execute update query
-        if (!empty($updates)) {
-            $sql = "UPDATE users SET " . implode(", ", $updates) . " WHERE id = ?";
-            $stmt = $pdo->prepare($sql);
-            if ($stmt->execute($params)) {
-                $success = "Settings updated successfully!";
-                
-                // Refresh user data
-                $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-                $stmt->execute([$_SESSION['user_id']]);
-                $userData = $stmt->fetch();
+        // Validate username if it's being updated
+        if (isset($_POST['username']) && $_POST['username'] !== $userData['username']) {
+            // Check if username already exists
+            $checkUsername = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+            $checkUsername->execute([$_POST['username'], $_SESSION['user_id']]);
+            if ($checkUsername->fetch()) {
+                $error = "Username already exists. Please choose a different one.";
             } else {
-                $error = "Failed to update settings";
+                $updates[] = "username = ?";
+                $params[] = $_POST['username'];
             }
         }
 
-        // Handle password change
-        if (!empty($_POST['new_password']) && !empty($_POST['current_password'])) {
-            if (password_verify($_POST['current_password'], $userData['password'])) {
-                $hashedPassword = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-                if ($stmt->execute([$hashedPassword, $_SESSION['user_id']])) {
-                    $success = "Password updated successfully!";
+        // Only proceed with updates if there's no error
+        if (!$error) {
+            // Handle other fields
+            if (isset($_POST['email']) && $_POST['email'] !== $userData['email']) {
+                // Check if email already exists
+                $checkEmail = $pdo->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+                $checkEmail->execute([$_POST['email'], $_SESSION['user_id']]);
+                if ($checkEmail->fetch()) {
+                    $error = "Email already exists. Please use a different one.";
                 } else {
-                    $error = "Failed to update password";
+                    $updates[] = "email = ?";
+                    $params[] = $_POST['email'];
+                }
+            }
+
+            // Add other fields if no errors occurred
+            if (!$error) {
+                if (isset($_POST['first_name'])) {
+                    $updates[] = "first_name = ?";
+                    $params[] = $_POST['first_name'];
+                }
+                if (isset($_POST['last_name'])) {
+                    $updates[] = "last_name = ?";
+                    $params[] = $_POST['last_name'];
+                }
+                if (isset($_POST['theme'])) {
+                    $updates[] = "theme = ?";
+                    $params[] = $_POST['theme'];
+                }
+                if (isset($_POST['font_size'])) {
+                    $updates[] = "font_size = ?";
+                    $params[] = $_POST['font_size'];
+                }
+
+                // Only proceed with update if there are changes
+                if (!empty($updates)) {
+                    // Add user ID to params array
+                    $params[] = $_SESSION['user_id'];
+
+                    // Construct and execute update query
+                    try {
+                        $sql = "UPDATE users SET " . implode(", ", $updates) . " WHERE id = ?";
+                        $stmt = $pdo->prepare($sql);
+                        if ($stmt->execute($params)) {
+                            $success = "Settings updated successfully!";
+                            
+                            // Refresh user data
+                            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+                            $stmt->execute([$_SESSION['user_id']]);
+                            $userData = $stmt->fetch();
+                        }
+                    } catch (PDOException $e) {
+                        // Handle any other database errors
+                        if ($e->getCode() == '23000') {
+                            $error = "A database constraint error occurred. Please check your input values.";
+                        } else {
+                            $error = "An error occurred while updating settings. Please try again.";
+                        }
+                        error_log("Database error: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+
+        // Handle password change separately
+        if (!$error && !empty($_POST['new_password']) && !empty($_POST['current_password'])) {
+            if (password_verify($_POST['current_password'], $userData['password'])) {
+                try {
+                    $hashedPassword = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                    if ($stmt->execute([$hashedPassword, $_SESSION['user_id']])) {
+                        $success = "Password updated successfully!";
+                    }
+                } catch (PDOException $e) {
+                    $error = "Failed to update password. Please try again.";
+                    error_log("Password update error: " . $e->getMessage());
                 }
             } else {
                 $error = "Current password is incorrect";
@@ -110,7 +144,8 @@ try {
     }
 
 } catch(PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
+    error_log("Database error: " . $e->getMessage());
+    $error = "A system error occurred. Please try again later.";
 }
 ?>
 
@@ -122,6 +157,9 @@ try {
     <title>Titano AI Settings</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="assets/js/theme.js"></script>
+    <script src="assets/js/font.js"></script>
+    <script src="assets/js/lang.js"></script>
     <style>
         :root {
             --background-color: #ffffff;
@@ -558,14 +596,18 @@ try {
                 <!-- Others Section -->
                 <div id="others" class="settings-section" style="display: none;">
                     <h3><i class="fas fa-ellipsis-h"></i> Others</h3>
-                    <div class="form-group">
-                        <label class="form-label">Language</label>
-                        <select class="form-select" name="language">
-                            <option value="en" <?php echo $userSettings['language'] === 'en' ? 'selected' : ''; ?>>English</option>
-                            <option value="es" <?php echo $userSettings['language'] === 'es' ? 'selected' : ''; ?>>Spanish</option>
-                            <option value="fr" <?php echo $userSettings['language'] === 'fr' ? 'selected' : ''; ?>>French</option>
-                        </select>
-                    </div>
+                    <form method="POST" action="" id="languageForm">
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <select class="form-select" name="language">
+                                <option value="en" <?php echo $userSettings['language'] === 'en' ? 'selected' : ''; ?>>English</option>
+                                <option value="es" <?php echo $userSettings['language'] === 'es' ? 'selected' : ''; ?>>Spanish</option>
+                                <option value="fr" <?php echo $userSettings['language'] === 'fr' ? 'selected' : ''; ?>>French</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="save-button mb-4">Save Language</button>
+                    </form>
+
                     <div class="form-group">
                         <label class="form-label">Message Spacing</label>
                         <select class="form-select" name="message_spacing">
@@ -586,16 +628,16 @@ try {
                                 <h5 class="card-title mb-3">System Information</h5>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>Status:</strong> <span id="systemStatus" class="text-success">Connected</span></p>
-                                        <p><strong>API Endpoint:</strong> localhost:11434</p>
-                                        <p><strong>Version:</strong> <span id="ollamaVersion">Checking...</span></p>
-                                        <p><strong>Last Check:</strong> <span id="lastCheck">Just now</span></p>
+                                        <p><strong>Status:</strong> <span id="systemStatus" class="badge bg-secondary">Checking...</span></p>
+                                        <p><strong>API Endpoint:</strong> <span id="apiEndpoint">localhost:11434</span></p>
+                                        <p><strong>Version:</strong> <span id="ollamaVersion" class="placeholder-glow"><span class="placeholder col-4"></span></span></p>
+                                        <p><strong>Last Check:</strong> <span id="lastCheck">Never</span></p>
                                     </div>
                                     <div class="col-md-6">
-                                        <p><strong>Total Models:</strong> <span id="modelCount">Loading...</span></p>
-                                        <p><strong>Total Size:</strong> <span id="totalSize">Calculating...</span></p>
-                                        <p><strong>System Memory:</strong> <span id="systemMemory">Checking...</span></p>
-                                        <p><strong>GPU Support:</strong> <span id="gpuStatus">Checking...</span></p>
+                                        <p><strong>Total Models:</strong> <span id="modelCount" class="placeholder-glow"><span class="placeholder col-4"></span></span></p>
+                                        <p><strong>Total Size:</strong> <span id="totalSize" class="placeholder-glow"><span class="placeholder col-4"></span></span></p>
+                                        <p><strong>System Memory:</strong> <span id="systemMemory" class="placeholder-glow"><span class="placeholder col-4"></span></span></p>
+                                        <p><strong>GPU Support:</strong> <span id="gpuStatus" class="placeholder-glow"><span class="placeholder col-4"></span></span></p>
                                     </div>
                                 </div>
                             </div>
@@ -690,6 +732,76 @@ try {
 
     <!-- Add this before the existing script tag -->
     <script>
+        // Add this at the beginning of your script section
+        const themeManager = new ThemeManager();
+        const fontManager = new FontManager();
+        const langManager = new LanguageManager();
+
+        // Update the theme selector handler
+        document.querySelector('select[name="theme"]').addEventListener('change', function() {
+            themeManager.setTheme(this.value);
+        });
+
+        // Update the font size selector handler
+        document.querySelector('select[name="font_size"]').addEventListener('change', function() {
+            fontManager.setFontSize(this.value);
+
+            // Save to database via AJAX
+            fetch('api/update_settings.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    setting: 'font_size',
+                    value: this.value
+                })
+            });
+        });
+
+        // Update the language selector handler
+        document.getElementById('languageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const selectedLang = this.querySelector('select[name="language"]').value;
+            
+            try {
+                // Save to database via AJAX
+                const response = await fetch('api/update_settings.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        setting: 'language',
+                        value: selectedLang
+                    })
+                });
+
+                if (response.ok) {
+                    // Update the language in the UI
+                    await langManager.setLanguage(selectedLang);
+                    
+                    // Show success message
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'alert alert-success mt-3';
+                    successAlert.textContent = 'Language updated successfully!';
+                    this.appendChild(successAlert);
+
+                    // Remove success message after 3 seconds
+                    setTimeout(() => successAlert.remove(), 3000);
+                } else {
+                    throw new Error('Failed to update language');
+                }
+            } catch (error) {
+                console.error('Error updating language:', error);
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger mt-3';
+                errorAlert.textContent = 'Failed to update language. Please try again.';
+                this.appendChild(errorAlert);
+                setTimeout(() => errorAlert.remove(), 3000);
+            }
+        });
+
         // Function to fetch available models
         async function fetchAvailableModels() {
             try {
@@ -820,50 +932,132 @@ try {
 
         // Add new function to fetch system information
         async function fetchSystemInfo() {
+            const systemStatus = document.getElementById('systemStatus');
+            const ollamaVersion = document.getElementById('ollamaVersion');
+            const totalSize = document.getElementById('totalSize');
+            const systemMemory = document.getElementById('systemMemory');
+            const gpuStatus = document.getElementById('gpuStatus');
+            const lastCheck = document.getElementById('lastCheck');
+            const modelCount = document.getElementById('modelCount');
+
+            // Set initial checking state
+            systemStatus.className = 'badge bg-secondary';
+            systemStatus.textContent = 'Checking...';
+
             try {
-                const response = await fetch('api/get_system_info.php');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+                const response = await fetch('api/get_system_info.php', {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
-                
-                // Update system information
-                document.getElementById('ollamaVersion').textContent = data.version;
-                document.getElementById('totalSize').textContent = `${data.total_size} GB`;
-                document.getElementById('systemMemory').textContent = 
-                    `${data.system_memory.total} GB Total / ${data.system_memory.free} GB Free`;
-                
-                // Update GPU status with detailed information
-                const gpuStatus = document.getElementById('gpuStatus');
-                if (data.gpu.available) {
-                    gpuStatus.textContent = data.gpu.info;
-                    gpuStatus.className = 'text-success';
+
+                // Update system status
+                systemStatus.className = 'badge bg-success';
+                systemStatus.textContent = 'Connected';
+
+                // Update version with fallback
+                ollamaVersion.textContent = data.version || 'Unknown';
+                ollamaVersion.className = ''; // Remove placeholder
+
+                // Update storage information with formatting
+                totalSize.textContent = data.total_size ? `${Number(data.total_size).toFixed(2)} GB` : 'N/A';
+                totalSize.className = ''; // Remove placeholder
+
+                // Update memory information with formatting
+                if (data.system_memory) {
+                    const totalMem = (data.system_memory.total / 1024).toFixed(2);
+                    const freeMem = (data.system_memory.free / 1024).toFixed(2);
+                    systemMemory.textContent = `${totalMem} GB Total / ${freeMem} GB Free`;
                 } else {
-                    gpuStatus.textContent = 'Not Available';
+                    systemMemory.textContent = 'N/A';
+                }
+                systemMemory.className = ''; // Remove placeholder
+
+                // Update GPU status
+                if (data.gpu) {
+                    gpuStatus.textContent = data.gpu.available ? data.gpu.info : 'Not Available';
+                    gpuStatus.className = data.gpu.available ? 'text-success' : 'text-warning';
+                } else {
+                    gpuStatus.textContent = 'Not Detected';
                     gpuStatus.className = 'text-warning';
                 }
-                
+
+                // Update model count
+                modelCount.textContent = data.model_count || '0';
+                modelCount.className = ''; // Remove placeholder
+
                 // Update last check time
-                document.getElementById('lastCheck').textContent = data.timestamp;
+                lastCheck.textContent = new Date().toLocaleTimeString();
+
             } catch (error) {
+                // Handle different types of errors
+                if (error.name === 'AbortError') {
+                    systemStatus.textContent = 'Timeout';
+                } else {
+                    systemStatus.textContent = 'Error';
+                }
+                systemStatus.className = 'badge bg-danger';
+                
+                // Clear placeholders but show error state
+                [ollamaVersion, totalSize, systemMemory, gpuStatus, modelCount].forEach(element => {
+                    element.className = 'text-danger';
+                    element.textContent = 'Error';
+                });
+                
+                lastCheck.textContent = new Date().toLocaleTimeString() + ' (Failed)';
                 console.error('Error fetching system info:', error);
-                document.getElementById('systemStatus').textContent = 'Error';
-                document.getElementById('systemStatus').className = 'text-danger';
             }
         }
 
-        // Update the refresh button handler
-        document.querySelector('.refresh-models')?.addEventListener('click', function() {
-            this.querySelector('i').classList.add('fa-spin');
-            Promise.all([
-                fetchAvailableModels(),
-                fetchSystemInfo()
-            ]).finally(() => {
-                this.querySelector('i').classList.remove('fa-spin');
-            });
-        });
+        // Add auto-refresh functionality with exponential backoff
+        let refreshAttempt = 0;
+        let refreshInterval = null;
 
-        // Update the AI section click handler
-        document.querySelector('a[href="#my_ai"]').addEventListener('click', function() {
-            fetchAvailableModels();
+        function startSystemInfoRefresh() {
+            // Clear any existing interval
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+
+            // Initial fetch
             fetchSystemInfo();
+
+            // Set up auto-refresh with exponential backoff
+            refreshInterval = setInterval(async () => {
+                try {
+                    await fetchSystemInfo();
+                    refreshAttempt = 0; // Reset attempt counter on success
+                } catch (error) {
+                    refreshAttempt++;
+                    const backoffTime = Math.min(1000 * Math.pow(2, refreshAttempt), 30000); // Max 30 seconds
+                    console.log(`Retrying in ${backoffTime/1000} seconds...`);
+                    clearInterval(refreshInterval);
+                    setTimeout(startSystemInfoRefresh, backoffTime);
+                }
+            }, 30000); // Regular refresh every 30 seconds
+        }
+
+        // Start the refresh cycle when the page loads or when switching to the AI tab
+        document.querySelector('a[href="#my_ai"]').addEventListener('click', startSystemInfoRefresh);
+
+        // Clean up interval when leaving the AI tab
+        document.querySelectorAll('.settings-nav-link').forEach(link => {
+            if (link.getAttribute('href') !== '#my_ai') {
+                link.addEventListener('click', () => {
+                    if (refreshInterval) {
+                        clearInterval(refreshInterval);
+                        refreshInterval = null;
+                    }
+                });
+            }
         });
 
         // Add this to your existing DOMContentLoaded event

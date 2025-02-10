@@ -1,0 +1,16 @@
+{
+    "new_chat": "New Chat",
+    "settings": "Settings",
+    "profile": "Profile",
+    "security": "Security",
+    "appearance": "Appearance",
+    "notifications": "Notifications",
+    "others": "Others",
+    "my_ai": "My AI",
+    "message_input_placeholder": "Type your message here... (Press Enter to send, Shift+Enter for new line)",
+    "save_changes": "Save Changes",
+    "update_password": "Update Password",
+    "enable_notifications": "Enable Desktop Notifications",
+    "welcome_message": "Chat with your local ai now",
+    "back_to_chat": "Back to Chat"
+}

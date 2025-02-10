@@ -3,62 +3,74 @@ header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('Connection: keep-alive');
 
+// Enable error reporting
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Disable output buffering
+if (ob_get_level()) ob_end_clean();
+
 if (!isset($_GET['model'])) {
     echo "data: " . json_encode(['status' => 'error', 'error' => 'Model name is required']) . "\n\n";
+    flush();
     exit;
 }
 
-$modelName = $_GET['model'];
+$model = $_GET['model'];
 
-// Initialize cURL session
-$ch = curl_init('http://localhost:11434/api/pull');
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => json_encode(['name' => $modelName]),
-    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-    CURLOPT_WRITEFUNCTION => function($ch, $data) {
-        $lines = explode("\n", $data);
-        foreach ($lines as $line) {
-            if (empty($line)) continue;
-            
-            $json = json_decode($line, true);
-            if ($json === null) continue;
+// Start the pull process
+$descriptorspec = array(
+    0 => array("pipe", "r"),  // stdin
+    1 => array("pipe", "w"),  // stdout
+    2 => array("pipe", "w")   // stderr
+);
 
-            if (isset($json['error'])) {
-                echo "data: " . json_encode([
-                    'status' => 'error',
-                    'error' => $json['error']
-                ]) . "\n\n";
-                return 0;
+$process = proc_open("ollama pull $model 2>&1", $descriptorspec, $pipes);
+
+if (is_resource($process)) {
+    // Set pipes to non-blocking mode
+    stream_set_blocking($pipes[1], false);
+    stream_set_blocking($pipes[2], false);
+
+    while (true) {
+        $status = proc_get_status($process);
+        
+        // Check if process was terminated externally
+        if (!$status['running']) {
+            $stderr = stream_get_contents($pipes[2]);
+            if (!empty($stderr)) {
+                echo "data: " . json_encode(['status' => 'cancelled', 'error' => 'Download was cancelled']) . "\n\n";
+                flush();
             }
+            break;
+        }
 
-            if (isset($json['completed'])) {
-                echo "data: " . json_encode([
-                    'status' => 'pulling',
-                    'completed' => $json['completed'],
-                    'total' => $json['total']
-                ]) . "\n\n";
-            }
-
-            if (isset($json['status']) && $json['status'] === 'success') {
-                echo "data: " . json_encode([
-                    'status' => 'complete'
-                ]) . "\n\n";
-                return 0;
+        $output = fgets($pipes[1]);
+        if ($output) {
+            $data = json_decode($output, true);
+            if ($data && isset($data['status'])) {
+                echo "data: " . $output . "\n\n";
+                flush();
             }
         }
-        return strlen($data);
+
+        // Check for errors
+        $error = fgets($pipes[2]);
+        if ($error) {
+            echo "data: " . json_encode(['status' => 'error', 'error' => trim($error)]) . "\n\n";
+            flush();
+            break;
+        }
+
+        // Small delay to prevent CPU overload
+        usleep(100000); // 100ms delay
     }
-]);
 
-curl_exec($ch);
-
-if (curl_errno($ch)) {
-    echo "data: " . json_encode([
-        'status' => 'error',
-        'error' => 'Error connecting to Ollama: ' . curl_error($ch)
-    ]) . "\n\n";
+    fclose($pipes[0]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+    proc_close($process);
+} else {
+    echo "data: " . json_encode(['status' => 'error', 'error' => 'Failed to start download process']) . "\n\n";
+    flush();
 }
-
-curl_close($ch);
