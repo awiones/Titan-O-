@@ -99,29 +99,6 @@ Titan 'O' is a powerful web-based platform that enables seamless integration of 
    php -S localhost:8000
    ```
 
-## 💡 Advanced Usage
-
-### Custom Model Configuration
-```json
-{
-  "model": "llama2",
-  "parameters": {
-    "temperature": 0.7,
-    "top_p": 0.9,
-    "max_tokens": 2048
-  }
-}
-```
-
-### API Integration
-```php
-$client = new TitanO\Client();
-$response = $client->chat([
-    'model' => 'llama2',
-    'message' => 'Hello, how are you?'
-]);
-```
-
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:
